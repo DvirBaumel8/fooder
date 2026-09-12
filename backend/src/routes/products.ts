@@ -34,13 +34,19 @@ productsRouter.post("/:id/photo", upload.single("photo"), async (req, res) => {
   }
 
   const key = `products/${product.id}/${randomUUID()}`;
-  const photoUrl = await uploadPhoto(key, req.file.buffer, req.file.mimetype);
 
-  const updated = await prisma.product.update({
-    where: { id: product.id },
-    data: { photoUrl },
-  });
+  try {
+    const photoUrl = await uploadPhoto(key, req.file.buffer, req.file.mimetype);
 
-  broadcastListChanged();
-  res.json(updated);
+    const updated = await prisma.product.update({
+      where: { id: product.id },
+      data: { photoUrl },
+    });
+
+    broadcastListChanged();
+    res.json(updated);
+  } catch (err) {
+    console.error("photo upload failed", err);
+    res.status(500).json({ error: "photo upload failed" });
+  }
 });

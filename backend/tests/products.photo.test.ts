@@ -35,4 +35,21 @@ describe("POST /api/products/:id/photo", () => {
       .attach("photo", Buffer.from("fake-image-bytes"), "milk.jpg");
     expect(res.status).toBe(404);
   });
+
+  it("returns 500 with a clean JSON error when the upload fails, without crashing", async () => {
+    const { uploadPhoto } = await import("../src/lib/r2.js");
+    (uploadPhoto as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(async () => {
+      throw new Error("R2 unreachable");
+    });
+
+    const product = await prisma.product.create({ data: { name: "תה" } });
+    const app = createApp();
+
+    const res = await request(app)
+      .post(`/api/products/${product.id}/photo`)
+      .attach("photo", Buffer.from("fake-image-bytes"), "milk.jpg");
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "photo upload failed" });
+  });
 });
