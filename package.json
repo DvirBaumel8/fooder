@@ -2,7 +2,8 @@
   "name": "fooder",
   "private": true,
   "workspaces": [
-    "backend"
+    "backend",
+    "frontend"
   ],
   "allowScripts": {
     "@prisma/client@5.22.0": true,
