@@ -43,3 +43,25 @@ listRouter.post("/", async (req, res) => {
 
   res.status(201).json(item);
 });
+
+listRouter.patch("/:id", async (req, res) => {
+  const { quantity, note } = req.body ?? {};
+
+  const existing = await prisma.shoppingListItem.findUnique({
+    where: { id: req.params.id },
+  });
+  if (!existing) {
+    res.status(404).json({ error: "item not found" });
+    return;
+  }
+
+  const item = await prisma.shoppingListItem.update({
+    where: { id: req.params.id },
+    data: { quantity, note },
+    include: {
+      product: { select: { id: true, name: true, category: true, photoUrl: true } },
+    },
+  });
+
+  res.json(item);
+});
