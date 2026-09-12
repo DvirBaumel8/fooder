@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useListQuery, useCompleteItem, useDeleteItem } from "./api/list";
+import { useListEvents } from "./api/useListEvents";
 import { ItemCard } from "./components/ItemCard";
 import { AddItemSheet } from "./components/AddItemSheet";
 
 export default function App() {
+  useListEvents();
   const { data: items, isLoading } = useListQuery();
   const completeItem = useCompleteItem();
   const deleteItem = useDeleteItem();
