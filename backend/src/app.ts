@@ -1,6 +1,7 @@
 import express, { Express } from "express";
 import cors from "cors";
 import { listRouter } from "./routes/list.js";
+import { productsRouter } from "./routes/products.js";
 
 export function createApp(): Express {
   const app = express();
@@ -12,6 +13,7 @@ export function createApp(): Express {
   });
 
   app.use("/api/list", listRouter);
+  app.use("/api/products", productsRouter);
 
   return app;
 }
