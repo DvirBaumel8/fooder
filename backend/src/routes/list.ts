@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
+import { broadcastListChanged } from "../sse.js";
 
 export const listRouter = Router();
 
@@ -41,6 +42,7 @@ listRouter.post("/", async (req, res) => {
     },
   });
 
+  broadcastListChanged();
   res.status(201).json(item);
 });
 
@@ -63,6 +65,7 @@ listRouter.patch("/:id", async (req, res) => {
     },
   });
 
+  broadcastListChanged();
   res.json(item);
 });
 
@@ -83,6 +86,7 @@ listRouter.post("/:id/complete", async (req, res) => {
     prisma.shoppingListItem.delete({ where: { id: item.id } }),
   ]);
 
+  broadcastListChanged();
   res.status(204).send();
 });
 
@@ -96,5 +100,6 @@ listRouter.delete("/:id", async (req, res) => {
   }
 
   await prisma.shoppingListItem.delete({ where: { id: item.id } });
+  broadcastListChanged();
   res.status(204).send();
 });

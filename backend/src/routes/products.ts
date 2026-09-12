@@ -3,6 +3,7 @@ import multer from "multer";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../db.js";
 import { uploadPhoto } from "../lib/r2.js";
+import { broadcastListChanged } from "../sse.js";
 
 export const productsRouter = Router();
 
@@ -40,5 +41,6 @@ productsRouter.post("/:id/photo", upload.single("photo"), async (req, res) => {
     data: { photoUrl },
   });
 
+  broadcastListChanged();
   res.json(updated);
 });
