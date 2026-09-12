@@ -1,5 +1,6 @@
 import express, { Express } from "express";
 import cors from "cors";
+import { listRouter } from "./routes/list.js";
 
 export function createApp(): Express {
   const app = express();
@@ -9,6 +10,8 @@ export function createApp(): Express {
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok" });
   });
+
+  app.use("/api/list", listRouter);
 
   return app;
 }
