@@ -85,3 +85,16 @@ listRouter.post("/:id/complete", async (req, res) => {
 
   res.status(204).send();
 });
+
+listRouter.delete("/:id", async (req, res) => {
+  const item = await prisma.shoppingListItem.findUnique({
+    where: { id: req.params.id },
+  });
+  if (!item) {
+    res.status(404).json({ error: "item not found" });
+    return;
+  }
+
+  await prisma.shoppingListItem.delete({ where: { id: item.id } });
+  res.status(204).send();
+});
