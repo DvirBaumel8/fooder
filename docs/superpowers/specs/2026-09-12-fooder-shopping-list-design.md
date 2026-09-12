@@ -136,3 +136,17 @@ REST endpoints (Express):
 - Free-tier backend cold starts (after 15 min idle) mean the first request
   after inactivity may take 30-60s — acceptable for this usage pattern, no
   special handling planned for v1.
+
+## Amendment (2026-09-12, during Task 2 implementation)
+
+The original plan called for Docker-based local Postgres for development,
+separate from Neon in production. This was replaced, at the user's
+explicit request, with: local dev and production sharing one remote Neon
+Postgres database (no Docker, no separate local Postgres to manage), and
+automated tests running against a fully separate, ephemeral local
+Postgres instance (via the `embedded-postgres` npm package) that is
+created and destroyed per test run — so running the test suite can never
+delete real household data. Schema changes use `prisma db push`
+throughout (no migration history) — a deliberate simplification for a
+single-developer project. See the implementation plan's Task 2 and
+Global Constraints for the concrete mechanics.

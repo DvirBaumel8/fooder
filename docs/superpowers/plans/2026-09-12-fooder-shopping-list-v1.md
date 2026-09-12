@@ -19,6 +19,13 @@
   (`localStorage`); there is no backend Users table and no per-user data.
 - All hosting must fit free tiers: Vercel (frontend), Render free web
   service (backend), Neon (Postgres), Cloudflare R2 (images).
+- Local dev and production share one remote Neon Postgres database (no
+  Docker, no separate local Postgres) — an explicit user decision made
+  after Task 1. Automated tests run against a fully separate, ephemeral
+  local Postgres instance (via `embedded-postgres`), created and destroyed
+  per test run, so tests can never touch real household data. Schema
+  changes use `prisma db push`, not `prisma migrate` — no migration
+  history for this single-developer project.
 - Realtime sync is SSE only (no WebSockets), broadcast via a single
   in-memory client list in the one backend process (no Redis/pub-sub).
 - Checking an item off (`POST /api/list/:id/complete`) increments the
@@ -203,16 +210,15 @@ git commit -m "feat: scaffold backend with health check endpoint"
 
 ---
 
-## Task 2: Local Postgres + Prisma schema
+## Task 2: Prisma schema + ephemeral local test database
 
 **Files:**
-- Create: `docker-compose.yml`
 - Modify: `backend/package.json`
 - Create: `backend/.env.example`
-- Create: `backend/.env` (local only, gitignored)
 - Create: `backend/prisma/schema.prisma`
 - Create: `backend/src/db.ts`
 - Create: `backend/tests/setup.ts`
+- Create: `backend/tests/globalSetup.ts`
 - Modify: `backend/vitest.config.ts`
 - Test: `backend/tests/db.test.ts`
 
@@ -221,34 +227,23 @@ git commit -m "feat: scaffold backend with health check endpoint"
 - Produces: `prisma` (a `PrismaClient` singleton) exported from
   `backend/src/db.ts`, used by every route task from here on. `Product` and
   `ShoppingListItem` Prisma models with the fields listed in the spec's
-  Data Model section.
+  Data Model section. A fully ephemeral local Postgres instance (via the
+  `embedded-postgres` package) that Vitest starts before the test run and
+  tears down after — no Docker, no state shared between runs.
 
-- [ ] **Step 1: Create docker-compose.yml**
+**Database strategy (supersedes the spec's original Docker-based sketch):**
+local interactive development (`npm run dev`) and production share the
+**same** remote Neon Postgres database, via `backend/.env`'s
+`DATABASE_URL` (already populated locally with the real connection
+string — gitignored, never committed, already pushed once with
+`prisma db push` so the tables exist). Automated tests get a **separate,
+ephemeral** Postgres instance spun up locally by `embedded-postgres` for
+the duration of `npm test` only, so running the test suite can never
+delete real household data. This project uses `prisma db push` (schema
+sync) everywhere, not `prisma migrate` — there is no `prisma/migrations/`
+directory, by design, for this single-developer project.
 
-```yaml
-services:
-  postgres:
-    image: postgres:16
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: fooder
-      POSTGRES_USER: fooder
-      POSTGRES_PASSWORD: fooder
-    ports:
-      - "5432:5432"
-    volumes:
-      - fooder-postgres-data:/var/lib/postgresql/data
-
-volumes:
-  fooder-postgres-data:
-```
-
-- [ ] **Step 2: Start Postgres**
-
-Run: `docker compose up -d`
-Verify: `docker compose ps` shows the `postgres` service as `running`/`healthy`.
-
-- [ ] **Step 3: Add Prisma dependencies**
+- [ ] **Step 1: Add Prisma and embedded-postgres dependencies**
 
 Modify `backend/package.json`:
 
@@ -264,6 +259,7 @@ Modify `backend/package.json`:
     "vitest": "^2.1.1",
     "supertest": "^7.0.0",
     "prisma": "^5.20.0",
+    "embedded-postgres": "^17.0.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.7.4",
     "@types/supertest": "^6.0.2",
@@ -271,13 +267,16 @@ Modify `backend/package.json`:
   }
 ```
 
-Run: `npm install`
+Run: `npm install`. If npm blocks install scripts for `embedded-postgres`
+or its platform binary package, add the blocked package name(s) to the
+`allowScripts` block in the root `package.json`, the same way
+`prisma`/`@prisma/client`/`@prisma/engines` were already added there.
 
-- [ ] **Step 4: Create env files**
+- [ ] **Step 2: Create the env example file**
 
 ```
 # backend/.env.example
-DATABASE_URL="postgresql://fooder:fooder@localhost:5432/fooder"
+DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
 PORT=3001
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
@@ -286,9 +285,10 @@ R2_BUCKET=
 R2_PUBLIC_BASE_URL=
 ```
 
-Copy it: `cp backend/.env.example backend/.env` (the real `backend/.env` is gitignored and needs no R2 values yet — those are only required starting Task 9).
+`backend/.env` (the real local file, gitignored) already exists with the
+actual Neon connection string — do not create or overwrite it.
 
-- [ ] **Step 5: Create the Prisma schema**
+- [ ] **Step 3: Create the Prisma schema**
 
 ```prisma
 // backend/prisma/schema.prisma
@@ -324,7 +324,7 @@ model ShoppingListItem {
 }
 ```
 
-- [ ] **Step 6: Write the failing test**
+- [ ] **Step 4: Write the failing test**
 
 ```typescript
 // backend/tests/db.test.ts
@@ -344,12 +344,12 @@ describe("Prisma schema", () => {
 });
 ```
 
-- [ ] **Step 7: Run the test, confirm it fails**
+- [ ] **Step 5: Run the test, confirm it fails**
 
 Run: `npm run test -w backend`
 Expected: FAIL — cannot find module `../src/db.js`
 
-- [ ] **Step 8: Create the Prisma client singleton**
+- [ ] **Step 6: Create the Prisma client singleton**
 
 ```typescript
 // backend/src/db.ts
@@ -358,13 +358,59 @@ import { PrismaClient } from "@prisma/client";
 export const prisma = new PrismaClient();
 ```
 
-- [ ] **Step 9: Run the migration and generate the client**
+- [ ] **Step 7: Create the ephemeral test database bootstrap**
 
-Run (from `backend/`): `npx prisma migrate dev --name init`
-This creates `backend/prisma/migrations/`, applies the schema to the local
-Postgres container, and generates the `@prisma/client` types.
+```typescript
+// backend/tests/globalSetup.ts
+import EmbeddedPostgres from "embedded-postgres";
+import { execSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-- [ ] **Step 10: Create the test DB cleanup hook**
+export default async function setup() {
+  const dataDir = mkdtempSync(join(tmpdir(), "fooder-test-pg-"));
+  const port = 54329;
+  const user = "postgres";
+  const password = "postgres";
+  const database = "fooder_test";
+  const databaseUrl = `postgresql://${user}:${password}@localhost:${port}/${database}`;
+
+  const pg = new EmbeddedPostgres({
+    databaseDir: dataDir,
+    user,
+    password,
+    port,
+    persistent: false,
+  });
+
+  await pg.initialise();
+  await pg.start();
+  await pg.createDatabase(database);
+
+  execSync("npx prisma db push --skip-generate", {
+    cwd: process.cwd(),
+    env: { ...process.env, DATABASE_URL: databaseUrl },
+    stdio: "inherit",
+  });
+
+  process.env.DATABASE_URL = databaseUrl;
+
+  return async () => {
+    await pg.stop();
+    rmSync(dataDir, { recursive: true, force: true });
+  };
+}
+```
+
+This runs once per `vitest run` invocation, in the same process Vitest
+uses before it loads any test file — the `DATABASE_URL` it sets is
+inherited by every test file's `import { prisma } from "../src/db.js"`.
+The returned function is Vitest's global teardown: it stops the embedded
+Postgres process and deletes its temp data directory after the whole run
+finishes.
+
+- [ ] **Step 8: Create the per-test cleanup hook**
 
 ```typescript
 // backend/tests/setup.ts
@@ -381,7 +427,7 @@ afterAll(async () => {
 });
 ```
 
-- [ ] **Step 11: Wire the setup file into Vitest**
+- [ ] **Step 9: Wire both hooks into Vitest**
 
 ```typescript
 // backend/vitest.config.ts
@@ -390,26 +436,34 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
+    globalSetup: ["./tests/globalSetup.ts"],
     setupFiles: ["./tests/setup.ts"],
   },
 });
 ```
 
-- [ ] **Step 12: Run the test, confirm it passes**
+- [ ] **Step 10: Run the test, confirm it passes**
 
 Run: `npm run test -w backend`
-Expected: PASS
+Expected: PASS — the output should show the embedded Postgres starting
+(via the `stdio: "inherit"` output from `prisma db push`) before the test
+runs, and no leftover Postgres process after the command exits
+(`ps aux | grep postgres` should show nothing from this run once it's
+done).
 
-- [ ] **Step 13: Commit**
+- [ ] **Step 11: Commit**
 
 ```bash
-git add docker-compose.yml backend/package.json backend/package-lock.json \
-  backend/.env.example backend/prisma backend/src/db.ts backend/tests/setup.ts \
-  backend/vitest.config.ts backend/tests/db.test.ts
-git commit -m "feat: add Postgres + Prisma schema for Product and ShoppingListItem"
+git add backend/package.json backend/package-lock.json backend/.env.example \
+  backend/prisma backend/src/db.ts backend/tests/setup.ts \
+  backend/tests/globalSetup.ts backend/tests/db.test.ts backend/vitest.config.ts \
+  package.json package-lock.json
+git commit -m "feat: add Prisma schema with ephemeral test database"
 ```
 
-(`backend/.env` is gitignored and must not be committed.)
+(`backend/.env` is gitignored and must not be committed. There is no
+`docker-compose.yml` in this project — local dev and production share one
+remote Postgres database instead.)
 
 ---
 
@@ -2264,7 +2318,7 @@ services:
     name: fooder-backend
     runtime: node
     rootDir: backend
-    buildCommand: npm install && npm run build && npx prisma migrate deploy
+    buildCommand: npm install && npm run build && npx prisma db push --skip-generate
     startCommand: npm run start
     envVars:
       - key: DATABASE_URL
@@ -2297,25 +2351,38 @@ Shared shopping list for Dvir and Mai.
 
 ## Local development
 
-1. `docker compose up -d` — starts local Postgres
-2. `npm install` — installs both workspaces
-3. `cp backend/.env.example backend/.env`
-4. `cd backend && npx prisma migrate dev` (first time only)
-5. `npm run dev -w backend` — backend on http://localhost:3001
-6. `npm run dev -w frontend` — frontend on http://localhost:5173 (proxies `/api` to the backend)
+Local dev and production share one remote Neon Postgres database — there
+is no local Postgres to install or run. Automated tests are the
+exception: they spin up their own throwaway local Postgres automatically
+(see "Testing" below), so they never touch real data.
+
+1. `npm install` — installs both workspaces
+2. `cp backend/.env.example backend/.env` and fill in the real Neon
+   `DATABASE_URL` (ask whoever set up the Neon project for it) — skip this
+   step if `backend/.env` already exists
+3. `npm run dev -w backend` — backend on http://localhost:3001
+4. `npm run dev -w frontend` — frontend on http://localhost:5173 (proxies `/api` to the backend)
+
+## Testing
+
+`npm run test -w backend` — no setup needed. A throwaway local Postgres
+instance is started automatically (via `embedded-postgres`) before the
+suite runs and torn down after, so this never touches the real Neon
+database.
 
 ## Deployment (all free tier)
 
-1. **Database — Neon**: create a free Neon Postgres project, copy its
-   connection string.
+1. **Database — Neon**: already set up (one project, `production` branch,
+   schema pushed via `prisma db push`). If starting over: create a free
+   Neon Postgres project and copy its connection string.
 2. **Images — Cloudflare R2**: create a bucket, an API token
    (Object Read & Write), and enable public access (or a custom domain)
    for the bucket to get a public base URL.
 3. **Backend — Render**: create a new Blueprint from this repo (uses
-   `render.yaml`). Set the env vars: `DATABASE_URL` (from Neon),
-   `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`,
-   `R2_PUBLIC_BASE_URL` (from Cloudflare). Note the resulting
-   `https://<service>.onrender.com` URL.
+   `render.yaml`). Set the env vars: `DATABASE_URL` (same Neon connection
+   string used locally), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+   `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` (from
+   Cloudflare). Note the resulting `https://<service>.onrender.com` URL.
 4. **Frontend — Vercel**: import this repo, set the project root directory
    to `frontend`, and set the env var `VITE_API_BASE_URL` to the Render
    backend URL from step 3.
