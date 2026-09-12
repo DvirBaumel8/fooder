@@ -65,3 +65,23 @@ listRouter.patch("/:id", async (req, res) => {
 
   res.json(item);
 });
+
+listRouter.post("/:id/complete", async (req, res) => {
+  const item = await prisma.shoppingListItem.findUnique({
+    where: { id: req.params.id },
+  });
+  if (!item) {
+    res.status(404).json({ error: "item not found" });
+    return;
+  }
+
+  await prisma.$transaction([
+    prisma.product.update({
+      where: { id: item.productId },
+      data: { timesAdded: { increment: 1 }, lastAddedAt: new Date() },
+    }),
+    prisma.shoppingListItem.delete({ where: { id: item.id } }),
+  ]);
+
+  res.status(204).send();
+});
