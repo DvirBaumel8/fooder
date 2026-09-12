@@ -3,9 +3,11 @@ import { useListQuery, useCompleteItem, useDeleteItem } from "./api/list";
 import { useListEvents } from "./api/useListEvents";
 import { ItemCard } from "./components/ItemCard";
 import { AddItemSheet } from "./components/AddItemSheet";
+import { ProfileSwitcher, useProfile } from "./components/ProfileSwitcher";
 
 export default function App() {
   useListEvents();
+  const [profile, setProfile] = useProfile();
   const { data: items, isLoading } = useListQuery();
   const completeItem = useCompleteItem();
   const deleteItem = useDeleteItem();
@@ -13,7 +15,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
-      <h1 className="mb-4 text-2xl font-bold">רשימת קניות</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">היי, {profile}</h1>
+        <ProfileSwitcher profile={profile} onChange={setProfile} />
+      </div>
 
       {isLoading && <p>טוען...</p>}
 
