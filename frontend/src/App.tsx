@@ -8,7 +8,7 @@ import { ProfileSwitcher, useProfile } from "./components/ProfileSwitcher";
 export default function App() {
   useListEvents();
   const [profile, setProfile] = useProfile();
-  const { data: items, isLoading } = useListQuery();
+  const { data: items, isLoading, isError, refetch } = useListQuery();
   const completeItem = useCompleteItem();
   const deleteItem = useDeleteItem();
   const [isAdding, setIsAdding] = useState(false);
@@ -22,16 +22,31 @@ export default function App() {
 
       {isLoading && <p>טוען...</p>}
 
-      <ul className="flex flex-col gap-2">
-        {items?.map((item) => (
-          <ItemCard
-            key={item.id}
-            item={item}
-            onComplete={(id) => completeItem.mutate(id)}
-            onDelete={(id) => deleteItem.mutate(id)}
-          />
-        ))}
-      </ul>
+      {isError && (
+        <div className="mb-4 rounded-md border border-red-300 bg-red-50 p-3 text-red-700">
+          <p>שגיאה בטעינת הרשימה. אירעה שגיאה, נסה שוב.</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-2 rounded-md bg-red-600 px-3 py-1 text-sm text-white"
+          >
+            נסה שוב
+          </button>
+        </div>
+      )}
+
+      {!isError && (
+        <ul className="flex flex-col gap-2">
+          {items?.map((item) => (
+            <ItemCard
+              key={item.id}
+              item={item}
+              onComplete={(id) => completeItem.mutate(id)}
+              onDelete={(id) => deleteItem.mutate(id)}
+            />
+          ))}
+        </ul>
+      )}
 
       <button
         type="button"

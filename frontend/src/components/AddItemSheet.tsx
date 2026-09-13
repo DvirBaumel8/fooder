@@ -13,6 +13,8 @@ export function AddItemSheet({ onClose }: AddItemSheetProps) {
   const { data: products } = useProductsQuery(search);
   const addItem = useAddItem();
   const uploadPhoto = useUploadProductPhoto();
+  const isBusy = addItem.isPending || uploadPhoto.isPending;
+  const hasError = addItem.isError || uploadPhoto.isError;
 
   const attachPhotoIfAny = (productId: string) => {
     if (file) {
@@ -74,7 +76,8 @@ export function AddItemSheet({ onClose }: AddItemSheetProps) {
               <button
                 type="button"
                 onClick={() => handleAddExisting(product.id)}
-                className="w-full rounded-md p-2 text-right hover:bg-slate-100"
+                disabled={isBusy}
+                className="w-full rounded-md p-2 text-right hover:bg-slate-100 disabled:opacity-50"
               >
                 {product.name}
               </button>
@@ -82,11 +85,15 @@ export function AddItemSheet({ onClose }: AddItemSheetProps) {
           ))}
         </ul>
 
+        {hasError && (
+          <p className="mb-2 text-sm text-red-600">משהו השתבש, נסה שוב</p>
+        )}
+
         <div className="flex gap-2">
           <button
             type="button"
             onClick={handleCreateNew}
-            disabled={!search.trim()}
+            disabled={!search.trim() || isBusy}
             className="flex-1 rounded-md bg-blue-600 p-2 text-white disabled:opacity-50"
           >
             הוסף &quot;{search}&quot; כפריט חדש
