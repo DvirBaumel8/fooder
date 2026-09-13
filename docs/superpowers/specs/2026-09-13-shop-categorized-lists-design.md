@@ -84,13 +84,19 @@ Modified endpoints:
   fetches the full list once and filters by shop client-side, since a
   household list is always small enough that per-tab round-trips aren't
   worth the complexity.
-- `POST /api/list` — body gains a required `shopId`; `400` if missing or
-  if it doesn't resolve to an existing shop (mirroring the existing
-  `productId`/`name` validation pattern).
+- `POST /api/list` — body gains a required `shopId`; `400` if missing,
+  `404` if it doesn't resolve to an existing shop (mirroring the existing
+  `productId` validation pattern — a `404` for "references a thing that
+  doesn't exist" reads more accurately than `400`, which is reserved for
+  malformed requests; this differs from an earlier draft of this section
+  that said `400` for both cases).
+- `PATCH /api/list/:id` — response gains the `shop` sub-object too (the
+  final review caught that the initial implementation left this out,
+  contradicting the frontend's `ShoppingListItem` type, which requires
+  `shop` on every item).
 
-Unchanged: `PATCH /api/list/:id`, `POST /api/list/:id/complete`,
-`DELETE /api/list/:id`, `GET /api/products`, `POST /api/products/:id/photo`,
-`GET /api/events`.
+Unchanged: `POST /api/list/:id/complete`, `DELETE /api/list/:id`,
+`GET /api/products`, `POST /api/products/:id/photo`, `GET /api/events`.
 
 ## Frontend UX
 
@@ -121,12 +127,19 @@ decision for this two-person household app.
 
 ## Migration Notes
 
-This is a schema change to a table (`ShoppingListItem`) that may already
-contain real rows in the shared production database. The migration must,
-in order: (1) create the `Shop` table, (2) insert the three default
-shops, (3) add `shopId` to `ShoppingListItem` as nullable, (4) backfill
-any existing rows with the first default shop's id, (5) alter `shopId` to
-`NOT NULL`. Using `prisma db push` directly against a required new
-relation on a populated table will fail without this backfill step, so
-the implementation plan must sequence it explicitly rather than relying
-on a single `db push` to "just work."
+This is a schema change to a table (`ShoppingListItem`) that could in
+principle already contain real rows in the shared production database,
+which would require careful sequencing: create `Shop`, add `shopId` as
+nullable, backfill existing rows to a default shop, then tighten to
+`NOT NULL`.
+
+**What actually happened:** before writing the implementation plan, the
+production `ShoppingListItem` row count was checked directly
+(`prisma.shoppingListItem.count()`) and found to be **zero**. A direct
+schema push (no nullable/backfill dance) was therefore safe, and that's
+what shipped: `prisma db push` applied `Shop` plus the required `shopId`
+column in one step, followed by seeding the three default shops directly
+via Prisma Client. If a future schema change lands after the table has
+gained real rows, re-check the row count first and fall back to the
+nullable → backfill → `NOT NULL` sequence described above if it's
+nonzero.
