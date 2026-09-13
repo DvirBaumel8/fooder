@@ -17,6 +17,7 @@ export interface AddItemInput {
   category?: string;
   quantity?: string;
   note?: string;
+  shopId: string;
 }
 
 export function useAddItem() {

@@ -1,17 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useListQuery, useCompleteItem, useDeleteItem } from "./api/list";
+import { useShopsQuery } from "./api/shops";
 import { useListEvents } from "./api/useListEvents";
 import { ItemCard } from "./components/ItemCard";
 import { AddItemSheet } from "./components/AddItemSheet";
+import { ShopTabs } from "./components/ShopTabs";
 import { ProfileSwitcher, useProfile } from "./components/ProfileSwitcher";
 
 export default function App() {
   useListEvents();
   const [profile, setProfile] = useProfile();
   const { data: items, isLoading, isError, refetch } = useListQuery();
+  const { data: shops } = useShopsQuery();
   const completeItem = useCompleteItem();
   const deleteItem = useDeleteItem();
   const [isAdding, setIsAdding] = useState(false);
+  const [activeShopId, setActiveShopId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeShopId && shops && shops.length > 0) {
+      setActiveShopId(shops[0].id);
+    }
+  }, [shops, activeShopId]);
+
+  const visibleItems = items?.filter((item) => item.shop.id === activeShopId);
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
@@ -19,6 +31,8 @@ export default function App() {
         <h1 className="text-2xl font-bold">היי, {profile}</h1>
         <ProfileSwitcher profile={profile} onChange={setProfile} />
       </div>
+
+      <ShopTabs activeShopId={activeShopId} onSelect={setActiveShopId} />
 
       {isLoading && <p>טוען...</p>}
 
@@ -37,7 +51,7 @@ export default function App() {
 
       {!isError && (
         <ul className="flex flex-col gap-2">
-          {items?.map((item) => (
+          {visibleItems?.map((item) => (
             <ItemCard
               key={item.id}
               item={item}
@@ -51,12 +65,15 @@ export default function App() {
       <button
         type="button"
         onClick={() => setIsAdding(true)}
-        className="fixed bottom-6 left-6 h-14 w-14 rounded-full bg-blue-600 text-2xl text-white shadow-lg"
+        disabled={!activeShopId}
+        className="fixed bottom-6 left-6 h-14 w-14 rounded-full bg-blue-600 text-2xl text-white shadow-lg disabled:opacity-50"
       >
         +
       </button>
 
-      {isAdding && <AddItemSheet onClose={() => setIsAdding(false)} />}
+      {isAdding && activeShopId && (
+        <AddItemSheet shopId={activeShopId} onClose={() => setIsAdding(false)} />
+      )}
     </div>
   );
 }

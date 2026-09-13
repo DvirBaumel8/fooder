@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL } from "./client";
 import { LIST_QUERY_KEY } from "./list";
+import { SHOPS_QUERY_KEY } from "./shops";
 
 export function useListEvents() {
   const queryClient = useQueryClient();
@@ -11,6 +12,7 @@ export function useListEvents() {
 
     source.addEventListener("list-changed", () => {
       queryClient.invalidateQueries({ queryKey: LIST_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SHOPS_QUERY_KEY });
     });
 
     return () => {

@@ -8,10 +8,17 @@ export interface Product {
   createdAt: string;
 }
 
+export interface Shop {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface ShoppingListItem {
   id: string;
   quantity: string | null;
   note: string | null;
   createdAt: string;
   product: Pick<Product, "id" | "name" | "category" | "photoUrl">;
+  shop: Pick<Shop, "id" | "name">;
 }

@@ -3,10 +3,11 @@ import { useProductsQuery, useUploadProductPhoto } from "../api/products";
 import { useAddItem } from "../api/list";
 
 interface AddItemSheetProps {
+  shopId: string;
   onClose: () => void;
 }
 
-export function AddItemSheet({ onClose }: AddItemSheetProps) {
+export function AddItemSheet({ shopId, onClose }: AddItemSheetProps) {
   const [search, setSearch] = useState("");
   const [quantity, setQuantity] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -24,7 +25,7 @@ export function AddItemSheet({ onClose }: AddItemSheetProps) {
 
   const handleAddExisting = (productId: string) => {
     addItem.mutate(
-      { productId, quantity: quantity || undefined },
+      { productId, quantity: quantity || undefined, shopId },
       {
         onSuccess: () => {
           attachPhotoIfAny(productId);
@@ -37,7 +38,7 @@ export function AddItemSheet({ onClose }: AddItemSheetProps) {
   const handleCreateNew = () => {
     if (!search.trim()) return;
     addItem.mutate(
-      { name: search.trim(), quantity: quantity || undefined },
+      { name: search.trim(), quantity: quantity || undefined, shopId },
       {
         onSuccess: (item) => {
           attachPhotoIfAny(item.product.id);
