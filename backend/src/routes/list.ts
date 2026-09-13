@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { broadcastListChanged } from "../sse.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 export const listRouter = Router();
 
-listRouter.get("/", async (_req, res) => {
+listRouter.get("/", asyncHandler(async (_req, res) => {
   const items = await prisma.shoppingListItem.findMany({
     orderBy: { createdAt: "asc" },
     include: {
@@ -14,9 +15,9 @@ listRouter.get("/", async (_req, res) => {
     },
   });
   res.json(items);
-});
+}));
 
-listRouter.post("/", async (req, res) => {
+listRouter.post("/", asyncHandler(async (req, res) => {
   const { productId, name, category, quantity, note } = req.body ?? {};
 
   if (!productId && !name) {
@@ -44,9 +45,9 @@ listRouter.post("/", async (req, res) => {
 
   broadcastListChanged();
   res.status(201).json(item);
-});
+}));
 
-listRouter.patch("/:id", async (req, res) => {
+listRouter.patch("/:id", asyncHandler(async (req, res) => {
   const { quantity, note } = req.body ?? {};
 
   const existing = await prisma.shoppingListItem.findUnique({
@@ -67,9 +68,9 @@ listRouter.patch("/:id", async (req, res) => {
 
   broadcastListChanged();
   res.json(item);
-});
+}));
 
-listRouter.post("/:id/complete", async (req, res) => {
+listRouter.post("/:id/complete", asyncHandler(async (req, res) => {
   const item = await prisma.shoppingListItem.findUnique({
     where: { id: req.params.id },
   });
@@ -88,9 +89,9 @@ listRouter.post("/:id/complete", async (req, res) => {
 
   broadcastListChanged();
   res.status(204).send();
-});
+}));
 
-listRouter.delete("/:id", async (req, res) => {
+listRouter.delete("/:id", asyncHandler(async (req, res) => {
   const item = await prisma.shoppingListItem.findUnique({
     where: { id: req.params.id },
   });
@@ -102,4 +103,4 @@ listRouter.delete("/:id", async (req, res) => {
   await prisma.shoppingListItem.delete({ where: { id: item.id } });
   broadcastListChanged();
   res.status(204).send();
-});
+}));
