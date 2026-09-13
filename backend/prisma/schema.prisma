@@ -19,12 +19,22 @@ model Product {
   listItems ShoppingListItem[]
 }
 
+model Shop {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  listItems ShoppingListItem[]
+}
+
 model ShoppingListItem {
   id        String   @id @default(cuid())
   productId String
+  shopId    String
   quantity  String?
   note      String?
   createdAt DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id])
+  shop    Shop    @relation(fields: [shopId], references: [id])
 }

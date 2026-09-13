@@ -6,8 +6,9 @@ import { prisma } from "../src/db.js";
 describe("DELETE /api/list/:id", () => {
   it("removes the item without touching product history stats", async () => {
     const product = await prisma.product.create({ data: { name: "מלפפון" } });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     const item = await prisma.shoppingListItem.create({
-      data: { productId: product.id },
+      data: { productId: product.id, shopId: shop.id },
     });
 
     const app = createApp();

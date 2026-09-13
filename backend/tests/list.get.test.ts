@@ -11,12 +11,13 @@ describe("GET /api/list", () => {
     expect(res.body).toEqual([]);
   });
 
-  it("returns items with their product info", async () => {
+  it("returns items with their product and shop info", async () => {
     const product = await prisma.product.create({
       data: { name: "חלב", category: "מוצרי חלב" },
     });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     await prisma.shoppingListItem.create({
-      data: { productId: product.id, quantity: "2" },
+      data: { productId: product.id, shopId: shop.id, quantity: "2" },
     });
 
     const app = createApp();
@@ -26,5 +27,6 @@ describe("GET /api/list", () => {
     expect(res.body).toHaveLength(1);
     expect(res.body[0].quantity).toBe("2");
     expect(res.body[0].product.name).toBe("חלב");
+    expect(res.body[0].shop.name).toBe("סופרמרקט");
   });
 });

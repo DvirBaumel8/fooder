@@ -12,16 +12,30 @@ listRouter.get("/", asyncHandler(async (_req, res) => {
       product: {
         select: { id: true, name: true, category: true, photoUrl: true },
       },
+      shop: {
+        select: { id: true, name: true },
+      },
     },
   });
   res.json(items);
 }));
 
 listRouter.post("/", asyncHandler(async (req, res) => {
-  const { productId, name, category, quantity, note } = req.body ?? {};
+  const { productId, name, category, quantity, note, shopId } = req.body ?? {};
 
   if (!productId && !name) {
     res.status(400).json({ error: "productId or name is required" });
+    return;
+  }
+
+  if (!shopId) {
+    res.status(400).json({ error: "shopId is required" });
+    return;
+  }
+
+  const shop = await prisma.shop.findUnique({ where: { id: shopId } });
+  if (!shop) {
+    res.status(404).json({ error: "shop not found" });
     return;
   }
 
@@ -37,9 +51,10 @@ listRouter.post("/", asyncHandler(async (req, res) => {
   }
 
   const item = await prisma.shoppingListItem.create({
-    data: { productId: product.id, quantity, note },
+    data: { productId: product.id, shopId: shop.id, quantity, note },
     include: {
       product: { select: { id: true, name: true, category: true, photoUrl: true } },
+      shop: { select: { id: true, name: true } },
     },
   });
 

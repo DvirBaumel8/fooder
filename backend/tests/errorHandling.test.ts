@@ -6,17 +6,11 @@ import { prisma } from "../src/db.js";
 describe("async route error handling", () => {
   it("returns a clean 500 instead of crashing when a Prisma call rejects", async () => {
     const product = await prisma.product.create({ data: { name: "עגבניות" } });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     const item = await prisma.shoppingListItem.create({
-      data: { productId: product.id, quantity: "1" },
+      data: { productId: product.id, shopId: shop.id, quantity: "1" },
     });
 
-    // Simulate a real-world race: someone else already deleted the row
-    // (or a transient DB error) between our existence check and the delete.
-    // Prisma's model delegates (prisma.shoppingListItem) are Proxy-based,
-    // and vi.spyOn(...).mockRestore()/vi.restoreAllMocks() has been observed
-    // to corrupt them (the method stops being callable afterwards) instead
-    // of cleanly restoring the original. So we capture the original
-    // reference ourselves and restore it manually in a finally block.
     const originalDelete = prisma.shoppingListItem.delete;
     prisma.shoppingListItem.delete = vi
       .fn()
@@ -43,8 +37,9 @@ describe("async route error handling", () => {
 
   it("still works for a normal delete flow after a previous request errored", async () => {
     const product = await prisma.product.create({ data: { name: "מלפפון" } });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     const item = await prisma.shoppingListItem.create({
-      data: { productId: product.id, quantity: "2" },
+      data: { productId: product.id, shopId: shop.id, quantity: "2" },
     });
 
     const app = createApp();

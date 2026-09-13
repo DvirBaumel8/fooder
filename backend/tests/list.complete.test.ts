@@ -6,8 +6,9 @@ import { prisma } from "../src/db.js";
 describe("POST /api/list/:id/complete", () => {
   it("removes the item and updates product history stats", async () => {
     const product = await prisma.product.create({ data: { name: "עגבניות" } });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     const item = await prisma.shoppingListItem.create({
-      data: { productId: product.id, quantity: "1" },
+      data: { productId: product.id, shopId: shop.id, quantity: "1" },
     });
 
     const app = createApp();

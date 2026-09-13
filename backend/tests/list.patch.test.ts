@@ -6,8 +6,9 @@ import { prisma } from "../src/db.js";
 describe("PATCH /api/list/:id", () => {
   it("updates quantity and note", async () => {
     const product = await prisma.product.create({ data: { name: "לחם" } });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     const item = await prisma.shoppingListItem.create({
-      data: { productId: product.id, quantity: "1" },
+      data: { productId: product.id, shopId: shop.id, quantity: "1" },
     });
 
     const app = createApp();

@@ -11,11 +11,13 @@ vi.mock("../src/sse.js", async () => {
 
 import { createApp } from "../src/app.js";
 import { broadcastListChanged } from "../src/sse.js";
+import { prisma } from "../src/db.js";
 
 describe("SSE broadcast wiring", () => {
   it("broadcasts list-changed after adding an item", async () => {
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     const app = createApp();
-    await request(app).post("/api/list").send({ name: "תה" });
+    await request(app).post("/api/list").send({ name: "תה", shopId: shop.id });
 
     expect(broadcastListChanged).toHaveBeenCalled();
   });
