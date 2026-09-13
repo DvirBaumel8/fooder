@@ -2,6 +2,7 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import { listRouter } from "./routes/list.js";
 import { productsRouter } from "./routes/products.js";
+import { shopsRouter } from "./routes/shops.js";
 import { eventsRouter } from "./sse.js";
 
 export function createApp(): Express {
@@ -15,6 +16,7 @@ export function createApp(): Express {
 
   app.use("/api/list", listRouter);
   app.use("/api/products", productsRouter);
+  app.use("/api/shops", shopsRouter);
   app.use("/api/events", eventsRouter);
 
   // Terminal error handler: must be registered last, and must take 4 args so
