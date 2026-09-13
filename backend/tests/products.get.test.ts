@@ -30,4 +30,22 @@ describe("GET /api/products", () => {
     expect(res.body[0].id).toBe(newer.id);
     expect(res.body[1].id).toBe(older.id);
   });
+
+  it("sorts never-bought products (lastAddedAt: null) after ones with a real date", async () => {
+    const neverBought = await prisma.product.create({
+      data: { name: "ג", lastAddedAt: null },
+    });
+    const bought = await prisma.product.create({
+      data: { name: "ד", lastAddedAt: new Date("2026-01-01") },
+    });
+
+    const app = createApp();
+    const res = await request(app).get("/api/products");
+
+    const boughtIndex = res.body.findIndex((p: { id: string }) => p.id === bought.id);
+    const neverBoughtIndex = res.body.findIndex((p: { id: string }) => p.id === neverBought.id);
+
+    expect(boughtIndex).toBeGreaterThanOrEqual(0);
+    expect(neverBoughtIndex).toBeGreaterThan(boughtIndex);
+  });
 });
