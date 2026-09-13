@@ -78,6 +78,7 @@ listRouter.patch("/:id", asyncHandler(async (req, res) => {
     data: { quantity, note },
     include: {
       product: { select: { id: true, name: true, category: true, photoUrl: true } },
+      shop: { select: { id: true, name: true } },
     },
   });
 

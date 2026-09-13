@@ -65,4 +65,28 @@ describe("POST /api/list", () => {
       .send({ name: "לחם", shopId: "does-not-exist" });
     expect(res.status).toBe(404);
   });
+
+  it("allows the same product to appear on two different shops' lists at once", async () => {
+    const product = await prisma.product.create({ data: { name: "חלב" } });
+    const shopA = await prisma.shop.create({ data: { name: "סופרמרקט" } });
+    const shopB = await prisma.shop.create({ data: { name: "גוד פארם" } });
+    const app = createApp();
+
+    const resA = await request(app)
+      .post("/api/list")
+      .send({ productId: product.id, quantity: "1", shopId: shopA.id });
+    const resB = await request(app)
+      .post("/api/list")
+      .send({ productId: product.id, quantity: "1", shopId: shopB.id });
+
+    expect(resA.status).toBe(201);
+    expect(resB.status).toBe(201);
+
+    const listRes = await request(app).get("/api/list");
+    expect(listRes.status).toBe(200);
+    expect(listRes.body).toHaveLength(2);
+
+    const shopIds = listRes.body.map((item: { shop: { id: string } }) => item.shop.id).sort();
+    expect(shopIds).toEqual([shopA.id, shopB.id].sort());
+  });
 });

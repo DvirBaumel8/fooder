@@ -14,7 +14,7 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
 
   const handleCreateShop = () => {
     const name = newShopName.trim();
-    if (!name) return;
+    if (!name || addShop.isPending) return;
     addShop.mutate(name, {
       onSuccess: (shop) => {
         onSelect(shop.id);
@@ -22,6 +22,11 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
         setIsAddingShop(false);
       },
     });
+  };
+
+  const handleCancelAddShop = () => {
+    setIsAddingShop(false);
+    setNewShopName("");
   };
 
   return (
@@ -58,6 +63,13 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
             className="rounded-full bg-blue-600 px-2 py-1 text-sm text-white disabled:opacity-50"
           >
             הוסף
+          </button>
+          <button
+            type="button"
+            onClick={handleCancelAddShop}
+            className="rounded-full border border-slate-300 px-2 py-1 text-sm text-slate-500"
+          >
+            ✕
           </button>
         </div>
       ) : (

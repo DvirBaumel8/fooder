@@ -7,7 +7,7 @@ export const shopsRouter = Router();
 
 shopsRouter.get("/", asyncHandler(async (_req, res) => {
   const shops = await prisma.shop.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
   res.json(shops);
 }));
@@ -15,13 +15,13 @@ shopsRouter.get("/", asyncHandler(async (_req, res) => {
 shopsRouter.post("/", asyncHandler(async (req, res) => {
   const { name } = req.body ?? {};
 
-  if (!name || !String(name).trim()) {
+  if (typeof name !== "string" || !name.trim()) {
     res.status(400).json({ error: "name is required" });
     return;
   }
 
   const shop = await prisma.shop.create({
-    data: { name: String(name).trim() },
+    data: { name: name.trim() },
   });
 
   broadcastListChanged();

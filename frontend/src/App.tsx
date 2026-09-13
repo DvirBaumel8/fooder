@@ -10,8 +10,13 @@ import { ProfileSwitcher, useProfile } from "./components/ProfileSwitcher";
 export default function App() {
   useListEvents();
   const [profile, setProfile] = useProfile();
-  const { data: items, isLoading, isError, refetch } = useListQuery();
-  const { data: shops } = useShopsQuery();
+  const { data: items, isLoading, isError: isListError, refetch: refetchList } = useListQuery();
+  const { data: shops, isError: isShopsError, refetch: refetchShops } = useShopsQuery();
+  const isError = isListError || isShopsError;
+  const refetch = () => {
+    refetchList();
+    refetchShops();
+  };
   const completeItem = useCompleteItem();
   const deleteItem = useDeleteItem();
   const [isAdding, setIsAdding] = useState(false);

@@ -19,6 +19,7 @@ describe("PATCH /api/list/:id", () => {
     expect(res.status).toBe(200);
     expect(res.body.quantity).toBe("2");
     expect(res.body.note).toBe("כוסמין");
+    expect(res.body.shop.id).toBe(shop.id);
   });
 
   it("returns 404 for a missing item", async () => {

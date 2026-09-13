@@ -52,4 +52,20 @@ describe("POST /api/shops", () => {
     const res = await request(app).post("/api/shops").send({ name: "   " });
     expect(res.status).toBe(400);
   });
+
+  it("trims surrounding whitespace from the name before storing it", async () => {
+    const app = createApp();
+    const res = await request(app)
+      .post("/api/shops")
+      .send({ name: "  סופר-פארם  " });
+
+    expect(res.status).toBe(201);
+    expect(res.body.name).toBe("סופר-פארם");
+  });
+
+  it("returns 400 when name is not a string", async () => {
+    const app = createApp();
+    const res = await request(app).post("/api/shops").send({ name: 42 });
+    expect(res.status).toBe(400);
+  });
 });

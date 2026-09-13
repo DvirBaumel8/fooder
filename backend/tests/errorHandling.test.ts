@@ -11,6 +11,11 @@ describe("async route error handling", () => {
       data: { productId: product.id, shopId: shop.id, quantity: "1" },
     });
 
+    // Prisma's model delegates (prisma.shoppingListItem) are Proxy-based,
+    // and vi.spyOn(...).mockRestore()/vi.restoreAllMocks() has been observed
+    // to corrupt them (the method stops being callable afterwards) instead
+    // of cleanly restoring the original. So we capture the original
+    // reference ourselves and restore it manually in a finally block.
     const originalDelete = prisma.shoppingListItem.delete;
     prisma.shoppingListItem.delete = vi
       .fn()
