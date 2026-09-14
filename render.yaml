@@ -3,7 +3,7 @@ services:
     name: fooder-backend
     runtime: node
     rootDir: backend
-    buildCommand: npm install --include=dev && npm run build && npx prisma db push --skip-generate
+    buildCommand: npm install --include=dev && npm run build && npx prisma db push
     startCommand: npm run start
     envVars:
       - key: DATABASE_URL
