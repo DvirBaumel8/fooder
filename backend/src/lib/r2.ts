@@ -30,7 +30,7 @@ export async function uploadPhoto(
   // gets persisted permanently onto the Product with no way to fix it.
   const accountId = requireEnv("R2_ACCOUNT_ID");
   const bucket = requireEnv("R2_BUCKET");
-  const publicBaseUrl = requireEnv("R2_PUBLIC_BASE_URL").replace(/\/+$/, "");
+  const publicBaseUrl = requireEnv("R2_PUBLIC_BASE_URL");
   requireEnv("R2_ACCESS_KEY_ID");
   requireEnv("R2_SECRET_ACCESS_KEY");
 
