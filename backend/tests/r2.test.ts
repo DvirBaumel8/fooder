@@ -1,4 +1,17 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+
+vi.mock("@aws-sdk/client-s3", () => {
+  class FakePutObjectCommand {
+    constructor(public input: unknown) {}
+  }
+  class FakeS3Client {
+    async send() {
+      return {};
+    }
+  }
+  return { S3Client: FakeS3Client, PutObjectCommand: FakePutObjectCommand };
+});
+
 import { uploadPhoto } from "../src/lib/r2.js";
 
 const R2_ENV_KEYS = [
@@ -48,5 +61,17 @@ describe("uploadPhoto config validation", () => {
     await expect(uploadPhoto("products/x/y", Buffer.from("data"), "image/jpeg")).rejects.toThrow(
       /R2 is not configured/
     );
+  });
+
+  it("strips a trailing slash from R2_PUBLIC_BASE_URL so the returned URL has no double slash", async () => {
+    process.env.R2_ACCOUNT_ID = "test-account";
+    process.env.R2_ACCESS_KEY_ID = "test-key";
+    process.env.R2_SECRET_ACCESS_KEY = "test-secret";
+    process.env.R2_BUCKET = "test-bucket";
+    process.env.R2_PUBLIC_BASE_URL = "https://pub-example.r2.dev/";
+
+    const url = await uploadPhoto("products/x/y", Buffer.from("data"), "image/jpeg");
+
+    expect(url).toBe("https://pub-example.r2.dev/products/x/y");
   });
 });
