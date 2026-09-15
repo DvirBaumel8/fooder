@@ -8,6 +8,7 @@ export function useListQuery() {
   return useQuery({
     queryKey: LIST_QUERY_KEY,
     queryFn: () => apiFetch<ShoppingListItem[]>("/api/list"),
+    staleTime: 10_000,
   });
 }
 

@@ -17,7 +17,10 @@ listRouter.get("/", asyncHandler(async (_req, res) => {
       },
     },
   });
-  res.json(items);
+  const uniqueItems = items.filter((item, index, all) =>
+    all.findIndex((candidate) => candidate.productId === item.productId && candidate.shopId === item.shopId) === index
+  );
+  res.json(uniqueItems);
 }));
 
 listRouter.post("/", asyncHandler(async (req, res) => {
@@ -39,14 +42,28 @@ listRouter.post("/", asyncHandler(async (req, res) => {
     return;
   }
 
+  const normalizedName = typeof name === "string" ? name.trim() : "";
   const product = productId
     ? await prisma.product.findUnique({ where: { id: productId } })
-    : await prisma.product.create({
-        data: { name: String(name).trim(), category: category?.trim() || undefined },
+    : await prisma.product.findFirst({ where: { name: normalizedName } }) ??
+      await prisma.product.create({
+        data: { name: normalizedName, category: category?.trim() || undefined },
       });
 
   if (!product) {
     res.status(404).json({ error: "product not found" });
+    return;
+  }
+
+  const existingItem = await prisma.shoppingListItem.findFirst({
+    where: { productId: product.id, shopId: shop.id },
+    include: {
+      product: { select: { id: true, name: true, category: true, photoUrl: true } },
+      shop: { select: { id: true, name: true } },
+    },
+  });
+  if (existingItem) {
+    res.status(200).json(existingItem);
     return;
   }
 

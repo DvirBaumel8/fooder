@@ -7,6 +7,8 @@ export function useProductsQuery(search: string) {
   return useQuery({
     queryKey: ["products", search] as const,
     queryFn: () => apiFetch<Product[]>(`/api/products?q=${encodeURIComponent(search)}`),
+    enabled: search.trim().length > 0,
+    staleTime: 30_000,
   });
 }
 

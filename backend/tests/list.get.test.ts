@@ -29,4 +29,22 @@ describe("GET /api/list", () => {
     expect(res.body[0].product.name).toBe("חלב");
     expect(res.body[0].shop.name).toBe("סופרמרקט");
   });
+
+  it("hides legacy duplicate rows for the same product and shop", async () => {
+    const product = await prisma.product.create({ data: { name: "קוטג׳" } });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
+    await prisma.shoppingListItem.createMany({
+      data: [
+        { productId: product.id, shopId: shop.id, quantity: "1" },
+        { productId: product.id, shopId: shop.id, quantity: "2" },
+      ],
+    });
+
+    const app = createApp();
+    const res = await request(app).get("/api/list");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].product.name).toBe("קוטג׳");
+  });
 });

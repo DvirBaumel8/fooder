@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useProductsQuery, useUploadProductPhoto } from "../api/products";
 import { useAddItem } from "../api/list";
 
@@ -11,10 +11,12 @@ export function AddItemSheet({ shopId, onClose }: AddItemSheetProps) {
   const [search, setSearch] = useState("");
   const [quantity, setQuantity] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submissionLock = useRef(false);
   const { data: products } = useProductsQuery(search);
   const addItem = useAddItem();
   const uploadPhoto = useUploadProductPhoto();
-  const isBusy = addItem.isPending || uploadPhoto.isPending;
+  const isBusy = isSubmitting || addItem.isPending || uploadPhoto.isPending;
   const hasError = addItem.isError || uploadPhoto.isError;
 
   const attachPhotoIfAny = (productId: string) => {
@@ -24,6 +26,9 @@ export function AddItemSheet({ shopId, onClose }: AddItemSheetProps) {
   };
 
   const handleAddExisting = (productId: string) => {
+    if (submissionLock.current) return;
+    submissionLock.current = true;
+    setIsSubmitting(true);
     addItem.mutate(
       { productId, quantity: quantity || undefined, shopId },
       {
@@ -31,18 +36,28 @@ export function AddItemSheet({ shopId, onClose }: AddItemSheetProps) {
           attachPhotoIfAny(productId);
           onClose();
         },
+        onError: () => {
+          submissionLock.current = false;
+          setIsSubmitting(false);
+        },
       }
     );
   };
 
   const handleCreateNew = () => {
-    if (!search.trim()) return;
+    if (!search.trim() || submissionLock.current) return;
+    submissionLock.current = true;
+    setIsSubmitting(true);
     addItem.mutate(
       { name: search.trim(), quantity: quantity || undefined, shopId },
       {
         onSuccess: (item) => {
           attachPhotoIfAny(item.product.id);
           onClose();
+        },
+        onError: () => {
+          submissionLock.current = false;
+          setIsSubmitting(false);
         },
       }
     );
@@ -95,7 +110,7 @@ export function AddItemSheet({ shopId, onClose }: AddItemSheetProps) {
             disabled={!search.trim() || isBusy}
             className="button button-primary add-new-button"
           >
-            הוסף &quot;{search}&quot; כפריט חדש
+            {isBusy ? "מוסיף..." : <>הוסף &quot;{search}&quot; כפריט חדש</>}
           </button>
           <button
             type="button"

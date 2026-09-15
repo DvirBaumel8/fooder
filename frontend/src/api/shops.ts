@@ -8,6 +8,7 @@ export function useShopsQuery() {
   return useQuery({
     queryKey: SHOPS_QUERY_KEY,
     queryFn: () => apiFetch<Shop[]>("/api/shops"),
+    staleTime: 60_000,
   });
 }
 

@@ -36,6 +36,24 @@ describe("POST /api/list", () => {
     expect(products).toHaveLength(1);
   });
 
+  it("does not create a duplicate active item for the same product and shop", async () => {
+    const product = await prisma.product.create({ data: { name: "קוטג׳" } });
+    const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
+    const app = createApp();
+
+    const first = await request(app)
+      .post("/api/list")
+      .send({ productId: product.id, quantity: "1", shopId: shop.id });
+    const second = await request(app)
+      .post("/api/list")
+      .send({ productId: product.id, quantity: "2", shopId: shop.id });
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(200);
+    expect(second.body.id).toBe(first.body.id);
+    expect(await prisma.shoppingListItem.count()).toBe(1);
+  });
+
   it("returns 400 when neither productId nor name is given", async () => {
     const shop = await prisma.shop.create({ data: { name: "סופרמרקט" } });
     const app = createApp();
