@@ -12,6 +12,6 @@
     <path d="M116 190h280l-25 196c-3 24-23 42-47 42H188c-24 0-44-18-47-42z" fill="#B9674B"/>
     <path d="M116 190h280" stroke="#9D553F" stroke-linecap="round" stroke-width="18"/>
     <path d="M159 240h194M153 292h206M147 344h218" stroke="#D98B6D" stroke-linecap="round" stroke-width="12" opacity=".9"/>
-    <path d="M204 244h76c25 0 39 12 39 32 0 15-8 25-22 29 18 3 28 14 28 32 0 26-18 39-49 39h-72v-132zm39 25v26h32c9 0 14-5 14-13s-5-13-14-13zm0 51v30h34c11 0 17-5 17-15s-6-15-17-15z" fill="#FFFDF7"/>
+    <path d="M204 244h106v26h-67v27h79v26h-79v53h-39z" fill="#FFFDF7"/>
   </g>
 </svg>
