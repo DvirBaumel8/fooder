@@ -21,6 +21,7 @@ export default function App() {
   const completeItem = useCompleteItem();
   const deleteItem = useDeleteItem();
   const [isAdding, setIsAdding] = useState(false);
+  const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
   const [activeShopId, setActiveShopId] = useState<string | null>(null);
   const [recentlyBought, setRecentlyBought] = useState<ShoppingListItem[]>([]);
   const restoreItem = useAddItem();
@@ -104,6 +105,7 @@ export default function App() {
               item={item}
               onComplete={handleComplete}
               onDelete={(id) => deleteItem.mutate(id)}
+              onEdit={setEditingItem}
             />
           ))}
           </ul> : <div className="empty-state"><div className="empty-icon">✦</div><h2>העגלה ריקה, איזה כיף</h2><p>אין כאן מה לקנות כרגע. הוסיפו פריט כשמשהו מתחיל להיגמר.</p></div>}
@@ -122,6 +124,9 @@ export default function App() {
 
       {isAdding && activeShopId && (
         <AddItemSheet shopId={activeShopId} onClose={() => setIsAdding(false)} />
+      )}
+      {editingItem && (
+        <AddItemSheet shopId={editingItem.shop.id} item={editingItem} onClose={() => setEditingItem(null)} />
       )}
       </div>
     </main>

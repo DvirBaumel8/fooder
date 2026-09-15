@@ -4,9 +4,10 @@ interface ItemCardProps {
   item: ShoppingListItem;
   onComplete: (id: string) => void;
   onDelete: (id: string) => void;
+  onEdit: (item: ShoppingListItem) => void;
 }
 
-export function ItemCard({ item, onComplete, onDelete }: ItemCardProps) {
+export function ItemCard({ item, onComplete, onDelete, onEdit }: ItemCardProps) {
   return (
     <li className="item-card">
       {item.product.photoUrl ? (
@@ -26,6 +27,15 @@ export function ItemCard({ item, onComplete, onDelete }: ItemCardProps) {
         </p>
         {item.note && <p className="item-note">{item.note}</p>}
       </div>
+
+      <button
+        type="button"
+        onClick={() => onEdit(item)}
+        className="button button-quiet button-small"
+        aria-label={`ערוך ${item.product.name}`}
+      >
+        ערוך
+      </button>
 
       <button
         type="button"

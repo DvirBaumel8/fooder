@@ -35,6 +35,25 @@ export function useAddItem() {
   });
 }
 
+export interface UpdateItemInput {
+  quantity?: string;
+  note?: string;
+}
+
+export function useUpdateItem() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: UpdateItemInput & { id: string }) =>
+      apiFetch<ShoppingListItem>(`/api/list/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LIST_QUERY_KEY });
+    },
+  });
+}
+
 export function useCompleteItem() {
   const queryClient = useQueryClient();
   return useMutation({
