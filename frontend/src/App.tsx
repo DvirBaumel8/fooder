@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useListQuery, useCompleteItem, useDeleteItem } from "./api/list";
+import { useListQuery, useCompleteItem, useDeleteItem, useAddItem } from "./api/list";
 import { useShopsQuery } from "./api/shops";
 import { useListEvents } from "./api/useListEvents";
 import { ItemCard } from "./components/ItemCard";
 import { AddItemSheet } from "./components/AddItemSheet";
 import { ShopTabs } from "./components/ShopTabs";
 import { ProfileSwitcher, useProfile } from "./components/ProfileSwitcher";
+import type { ShoppingListItem } from "./api/types";
 
 export default function App() {
   useListEvents();
@@ -21,7 +22,8 @@ export default function App() {
   const deleteItem = useDeleteItem();
   const [isAdding, setIsAdding] = useState(false);
   const [activeShopId, setActiveShopId] = useState<string | null>(null);
-  const [recentlyBought, setRecentlyBought] = useState<string[]>([]);
+  const [recentlyBought, setRecentlyBought] = useState<ShoppingListItem[]>([]);
+  const restoreItem = useAddItem();
 
   useEffect(() => {
     if (!activeShopId && shops && shops.length > 0) {
@@ -37,8 +39,25 @@ export default function App() {
 
   const handleComplete = (id: string) => {
     const item = visibleItems.find((entry) => entry.id === id);
-    if (item) setRecentlyBought((current) => [item.product.name, ...current].slice(0, 3));
-    completeItem.mutate(id);
+    if (!item) return;
+    completeItem.mutate(id, {
+      onSuccess: () => setRecentlyBought((current) => [item, ...current].slice(0, 3)),
+    });
+  };
+
+  const handleRestore = (item: ShoppingListItem) => {
+    restoreItem.mutate(
+      {
+        productId: item.product.id,
+        shopId: item.shop.id,
+        quantity: item.quantity ?? undefined,
+        note: item.note ?? undefined,
+      },
+      {
+        onSuccess: () =>
+          setRecentlyBought((current) => current.filter((entry) => entry.id !== item.id)),
+      }
+    );
   };
 
   return (
@@ -88,7 +107,7 @@ export default function App() {
             />
           ))}
           </ul> : <div className="empty-state"><div className="empty-icon">✦</div><h2>העגלה ריקה, איזה כיף</h2><p>אין כאן מה לקנות כרגע. הוסיפו פריט כשמשהו מתחיל להיגמר.</p></div>}
-          {recentlyBought.length > 0 && <section className="bought-section"><p className="section-kicker">נקנה עכשיו</p><div className="bought-list">{recentlyBought.map((name, index) => <span key={`${name}-${index}`} className="bought-pill">✓ {name}</span>)}</div></section>}
+          {recentlyBought.length > 0 && <section className="bought-section"><p className="section-kicker">נקנה עכשיו</p><div className="bought-list">{recentlyBought.map((item) => <div key={item.id} className="bought-entry"><span className="bought-pill">✓ {item.product.name}</span><button type="button" className="bought-undo" onClick={() => handleRestore(item)} disabled={restoreItem.isPending}>בטל</button></div>)}</div></section>}
         </>
       )}
 
