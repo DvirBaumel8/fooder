@@ -49,65 +49,63 @@ export function AddItemSheet({ shopId, onClose }: AddItemSheetProps) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-end bg-black/40">
-      <div className="w-full rounded-t-xl bg-white p-4">
+    <div className="sheet-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="add-sheet" role="dialog" aria-modal="true" aria-labelledby="add-item-title">
+        <div className="sheet-handle" aria-hidden="true" />
+        <div className="sheet-header">
+          <div><p className="section-kicker">רשימת קניות</p><h2 id="add-item-title">מה חסר בבית?</h2></div>
+          <button type="button" onClick={onClose} className="close-button" aria-label="סגור">×</button>
+        </div>
         <input
           autoFocus
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="מה צריך לקנות?"
-          className="mb-2 w-full rounded-md border border-slate-300 p-2"
+          className="field field-search"
         />
-        <input
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          placeholder="כמות (לא חובה)"
-          className="mb-2 w-full rounded-md border border-slate-300 p-2"
-        />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="mb-3 w-full text-sm"
-        />
+        <div className="detail-row">
+          <input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="כמות (לא חובה)" className="field" />
+          <label className="photo-button"><span aria-hidden="true">📷</span> תמונה<input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
+        </div>
+        {file && <p className="file-note">התמונה מצורפת: {file.name}</p>}
 
-        <ul className="mb-3 max-h-48 overflow-y-auto">
+        <ul className="suggestion-list">
           {products?.map((product) => (
             <li key={product.id}>
               <button
                 type="button"
                 onClick={() => handleAddExisting(product.id)}
                 disabled={isBusy}
-                className="w-full rounded-md p-2 text-right hover:bg-slate-100 disabled:opacity-50"
+                className="suggestion-button"
               >
-                {product.name}
+                <span className="suggestion-icon">＋</span>{product.name}
               </button>
             </li>
           ))}
         </ul>
 
         {hasError && (
-          <p className="mb-2 text-sm text-red-600">משהו השתבש, נסה שוב</p>
+          <p className="form-error">משהו השתבש, נסה שוב</p>
         )}
 
-        <div className="flex gap-2">
+        <div className="sheet-actions">
           <button
             type="button"
             onClick={handleCreateNew}
             disabled={!search.trim() || isBusy}
-            className="flex-1 rounded-md bg-blue-600 p-2 text-white disabled:opacity-50"
+            className="button button-primary add-new-button"
           >
             הוסף &quot;{search}&quot; כפריט חדש
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-slate-300 p-2"
+            className="button button-quiet"
           >
             ביטול
           </button>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -12,6 +12,17 @@ vi.mock("../src/sse.js", async () => {
 import { createApp } from "../src/app.js";
 import { broadcastListChanged } from "../src/sse.js";
 import { prisma } from "../src/db.js";
+import { ensureDefaultShops } from "../src/seed.js";
+
+describe("ensureDefaultShops", () => {
+  it("creates ניצת הדובדבן once and is safe to run repeatedly", async () => {
+    await ensureDefaultShops();
+    await ensureDefaultShops();
+
+    const shops = await prisma.shop.findMany({ where: { name: "ניצת הדובדבן" } });
+    expect(shops).toHaveLength(1);
+  });
+});
 
 describe("GET /api/shops", () => {
   it("returns shops ordered by creation time", async () => {

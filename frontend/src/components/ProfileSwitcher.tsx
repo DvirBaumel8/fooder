@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
-export type Profile = "דביר" | "מיי";
+export type Profile = "דביר" | "מאי";
 
 const STORAGE_KEY = "fooder.profile";
 
 function readStoredProfile(): Profile {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === "דביר" || stored === "מיי" ? stored : "דביר";
+  return stored === "דביר" || stored === "מאי" ? stored : "דביר";
 }
 
 export function useProfile(): [Profile, (profile: Profile) => void] {
@@ -27,7 +27,7 @@ interface ProfileSwitcherProps {
 export function ProfileSwitcher({ profile, onChange }: ProfileSwitcherProps) {
   return (
     <div className="flex gap-1 text-sm">
-      {(["דביר", "מיי"] as const).map((name) => (
+      {(["דביר", "מאי"] as const).map((name) => (
         <button
           key={name}
           type="button"

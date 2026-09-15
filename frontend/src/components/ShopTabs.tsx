@@ -30,44 +30,45 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
   };
 
   return (
-    <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-      {shops?.map((shop) => (
-        <button
-          key={shop.id}
-          type="button"
-          onClick={() => onSelect(shop.id)}
-          className={
-            shop.id === activeShopId
-              ? "shrink-0 rounded-full bg-blue-600 px-3 py-1 text-sm text-white"
-              : "shrink-0 rounded-full border border-slate-300 px-3 py-1 text-sm"
-          }
-        >
-          {shop.name}
-        </button>
-      ))}
+    <section className="shop-panel">
+      <div className="section-kicker">איפה קונים היום?</div>
+      <div className="shop-scroller" role="tablist" aria-label="בחירת חנות">
+        {shops?.map((shop) => (
+          <button
+            key={shop.id}
+            type="button"
+            role="tab"
+            aria-selected={shop.id === activeShopId}
+            onClick={() => onSelect(shop.id)}
+            className={shop.id === activeShopId ? "shop-chip shop-chip-active" : "shop-chip"}
+          >
+            <span className="shop-dot" aria-hidden="true" />
+            {shop.name}
+          </button>
+        ))}
 
       {isAddingShop ? (
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="shop-add-form">
           <input
             autoFocus
             value={newShopName}
             onChange={(e) => setNewShopName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreateShop()}
             placeholder="שם החנות"
-            className="w-24 rounded-full border border-slate-300 px-2 py-1 text-sm"
+            className="field shop-add-input"
           />
           <button
             type="button"
             onClick={handleCreateShop}
             disabled={!newShopName.trim() || addShop.isPending}
-            className="rounded-full bg-blue-600 px-2 py-1 text-sm text-white disabled:opacity-50"
+            className="button button-small button-primary disabled:opacity-50"
           >
             הוסף
           </button>
           <button
             type="button"
             onClick={handleCancelAddShop}
-            className="rounded-full border border-slate-300 px-2 py-1 text-sm text-slate-500"
+            className="button button-small button-quiet"
           >
             ✕
           </button>
@@ -76,11 +77,13 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
         <button
           type="button"
           onClick={() => setIsAddingShop(true)}
-          className="shrink-0 rounded-full border border-dashed border-slate-400 px-3 py-1 text-sm text-slate-500"
+          className="shop-chip shop-chip-add"
         >
-          +
+          <span aria-hidden="true">＋</span> חנות חדשה
         </button>
       )}
-    </div>
+      </div>
+      {addShop.isError && <p className="form-error">לא הצלחנו להוסיף את החנות. נסו שוב.</p>}
+    </section>
   );
 }

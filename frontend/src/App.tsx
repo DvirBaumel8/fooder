@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useListQuery, useCompleteItem, useDeleteItem } from "./api/list";
 import { useShopsQuery } from "./api/shops";
 import { useListEvents } from "./api/useListEvents";
@@ -21,6 +21,7 @@ export default function App() {
   const deleteItem = useDeleteItem();
   const [isAdding, setIsAdding] = useState(false);
   const [activeShopId, setActiveShopId] = useState<string | null>(null);
+  const [recentlyBought, setRecentlyBought] = useState<string[]>([]);
 
   useEffect(() => {
     if (!activeShopId && shops && shops.length > 0) {
@@ -28,57 +29,82 @@ export default function App() {
     }
   }, [shops, activeShopId]);
 
-  const visibleItems = items?.filter((item) => item.shop.id === activeShopId);
+  const visibleItems = useMemo(
+    () => items?.filter((item) => item.shop.id === activeShopId) ?? [],
+    [items, activeShopId]
+  );
+  const activeShop = shops?.find((shop) => shop.id === activeShopId);
+
+  const handleComplete = (id: string) => {
+    const item = visibleItems.find((entry) => entry.id === id);
+    if (item) setRecentlyBought((current) => [item.product.name, ...current].slice(0, 3));
+    completeItem.mutate(id);
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">היי, {profile}</h1>
+    <main className="app-shell">
+      <div className="app-container">
+        <header className="app-header">
+          <div>
+            <p className="eyebrow">FOODER · רשימת הקניות שלנו</p>
+            <h1>היי, {profile} <span aria-hidden="true">👋</span></h1>
+          </div>
         <ProfileSwitcher profile={profile} onChange={setProfile} />
-      </div>
+        </header>
 
-      <ShopTabs activeShopId={activeShopId} onSelect={setActiveShopId} />
+        <ShopTabs activeShopId={activeShopId} onSelect={setActiveShopId} />
 
-      {isLoading && <p>טוען...</p>}
+        {isLoading && <div className="state-card"><span className="spinner" /> טוענים את הרשימה...</div>}
 
       {isError && (
-        <div className="mb-4 rounded-md border border-red-300 bg-red-50 p-3 text-red-700">
+        <div className="state-card state-error">
           <p>שגיאה בטעינת הרשימה. אירעה שגיאה, נסה שוב.</p>
           <button
             type="button"
             onClick={() => refetch()}
-            className="mt-2 rounded-md bg-red-600 px-3 py-1 text-sm text-white"
+            className="button button-primary"
           >
             נסה שוב
           </button>
         </div>
       )}
 
-      {!isError && (
-        <ul className="flex flex-col gap-2">
-          {visibleItems?.map((item) => (
+      {!isError && !isLoading && (
+        <>
+          <section className="list-summary">
+            <div>
+              <p className="section-kicker">הרשימה שלך</p>
+              <h2>{activeShop?.name ?? "החנות"}</h2>
+            </div>
+            <div className="count-badge"><strong>{visibleItems.length}</strong><span>{visibleItems.length === 1 ? "פריט" : "פריטים"}</span></div>
+          </section>
+          {visibleItems.length > 0 ? <ul className="item-list">
+          {visibleItems.map((item) => (
             <ItemCard
               key={item.id}
               item={item}
-              onComplete={(id) => completeItem.mutate(id)}
+              onComplete={handleComplete}
               onDelete={(id) => deleteItem.mutate(id)}
             />
           ))}
-        </ul>
+          </ul> : <div className="empty-state"><div className="empty-icon">✦</div><h2>העגלה ריקה, איזה כיף</h2><p>אין כאן מה לקנות כרגע. הוסיפו פריט כשמשהו מתחיל להיגמר.</p></div>}
+          {recentlyBought.length > 0 && <section className="bought-section"><p className="section-kicker">נקנה עכשיו</p><div className="bought-list">{recentlyBought.map((name, index) => <span key={`${name}-${index}`} className="bought-pill">✓ {name}</span>)}</div></section>}
+        </>
       )}
 
       <button
         type="button"
         onClick={() => setIsAdding(true)}
         disabled={!activeShopId}
-        className="fixed bottom-6 left-6 h-14 w-14 rounded-full bg-blue-600 text-2xl text-white shadow-lg disabled:opacity-50"
+        className="add-button"
       >
-        +
+        <span aria-hidden="true">＋</span><span>הוסף פריט</span>
       </button>
 
       {isAdding && activeShopId && (
         <AddItemSheet shopId={activeShopId} onClose={() => setIsAdding(false)} />
       )}
-    </div>
+      </div>
+    </main>
   );
 }

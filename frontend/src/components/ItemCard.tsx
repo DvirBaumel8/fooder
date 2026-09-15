@@ -8,37 +8,39 @@ interface ItemCardProps {
 
 export function ItemCard({ item, onComplete, onDelete }: ItemCardProps) {
   return (
-    <li className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm">
+    <li className="item-card">
       {item.product.photoUrl ? (
         <img
           src={item.product.photoUrl}
           alt={item.product.name}
-          className="h-12 w-12 rounded-md object-cover"
+          className="item-photo"
         />
       ) : (
-        <div className="h-12 w-12 rounded-md bg-slate-200" />
+        <div className="item-photo item-photo-empty" aria-hidden="true">🛒</div>
       )}
 
-      <div className="flex-1">
-        <p className="font-medium">{item.product.name}</p>
-        <p className="text-sm text-slate-500">
+      <div className="item-copy">
+        <p className="item-name">{item.product.name}</p>
+        <p className="item-meta">
           {[item.quantity, item.product.category].filter(Boolean).join(" · ")}
         </p>
+        {item.note && <p className="item-note">{item.note}</p>}
       </div>
 
       <button
         type="button"
         onClick={() => onComplete(item.id)}
-        className="rounded-full border border-green-600 px-3 py-1 text-sm text-green-700"
+        className="button button-complete"
       >
-        נקנה
+        <span aria-hidden="true">✓</span> נקנה
       </button>
       <button
         type="button"
         onClick={() => onDelete(item.id)}
-        className="rounded-full border border-red-600 px-3 py-1 text-sm text-red-700"
+        className="delete-button"
+        aria-label={`מחק ${item.product.name}`}
       >
-        מחק
+        ×
       </button>
     </li>
   );
