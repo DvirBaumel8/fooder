@@ -47,3 +47,46 @@ it("closes the sort options when Escape is pressed", async () => {
   expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   expect(sortButton).toHaveAttribute("aria-expanded", "false");
 });
+
+it("returns focus to the sort trigger when Escape closes a focused sort option", async () => {
+  const user = userEvent.setup();
+
+  renderWithClient(
+    <ListToolbar
+      shopName="ניצת הדובדבן"
+      value=""
+      onSearchChange={vi.fn()}
+      sort="newest"
+      onSortChange={vi.fn()}
+    />,
+  );
+
+  const sortButton = screen.getByRole("button", { name: "מיון: חדש ביותר" });
+  await user.click(sortButton);
+  await user.tab();
+  expect(screen.getByRole("menuitemradio", { name: "חדש ביותר" })).toHaveFocus();
+
+  await user.keyboard("{Escape}");
+
+  expect(sortButton).toHaveFocus();
+});
+
+it("returns focus to the sort trigger after selecting a sort option", async () => {
+  const user = userEvent.setup();
+
+  renderWithClient(
+    <ListToolbar
+      shopName="ניצת הדובדבן"
+      value=""
+      onSearchChange={vi.fn()}
+      sort="newest"
+      onSortChange={vi.fn()}
+    />,
+  );
+
+  const sortButton = screen.getByRole("button", { name: "מיון: חדש ביותר" });
+  await user.click(sortButton);
+  await user.click(screen.getByRole("menuitemradio", { name: "לפי שם" }));
+
+  expect(sortButton).toHaveFocus();
+});

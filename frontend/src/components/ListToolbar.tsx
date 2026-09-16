@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ListSort } from "../lib/listPresentation";
 
 type ListToolbarProps = {
@@ -18,15 +18,21 @@ const sortOptions: Array<{ value: ListSort; label: string }> = [
 export function ListToolbar({ shopName, value, onSearchChange, sort, onSortChange }: ListToolbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(value);
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
   const selectedSort = sortOptions.find((option) => option.value === sort) ?? sortOptions[0];
 
   useEffect(() => {
     setSearchValue(value);
   }, [value]);
 
+  function closeSortMenu() {
+    setIsMenuOpen(false);
+    sortTriggerRef.current?.focus();
+  }
+
   function selectSort(nextSort: ListSort) {
     onSortChange(nextSort);
-    setIsMenuOpen(false);
+    closeSortMenu();
   }
 
   return (
@@ -45,10 +51,11 @@ export function ListToolbar({ shopName, value, onSearchChange, sort, onSortChang
       <div
         className="sort-control"
         onKeyDown={(event) => {
-          if (event.key === "Escape") setIsMenuOpen(false);
+          if (event.key === "Escape") closeSortMenu();
         }}
       >
         <button
+          ref={sortTriggerRef}
           type="button"
           aria-haspopup="menu"
           aria-expanded={isMenuOpen}
