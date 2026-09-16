@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 type ItemActionsMenuProps = {
   itemName: string;
@@ -11,6 +11,8 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const deleteRef = useRef<HTMLButtonElement>(null);
+  const popupId = useId();
 
   useEffect(() => {
     if (isConfirmingDelete) cancelRef.current?.focus();
@@ -31,11 +33,34 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
     triggerRef.current?.focus();
   }
 
+  function handleDialogKeyDown(event: React.KeyboardEvent<HTMLElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      cancelDelete();
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+
+    const firstControl = cancelRef.current;
+    const lastControl = deleteRef.current;
+    if (!firstControl || !lastControl) return;
+
+    if (event.shiftKey && document.activeElement === firstControl) {
+      event.preventDefault();
+      lastControl.focus();
+    } else if (!event.shiftKey && document.activeElement === lastControl) {
+      event.preventDefault();
+      firstControl.focus();
+    }
+  }
+
   return (
     <div
       className="item-actions"
       onKeyDown={(event) => {
-        if (event.key === "Escape") closeMenu({ restoreFocus: true });
+        if (isMenuOpen && event.key === "Escape") closeMenu({ restoreFocus: true });
       }}
     >
       <button
@@ -43,8 +68,8 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
         type="button"
         className="item-actions-trigger"
         aria-label={`פעולות עבור ${itemName}`}
-        aria-haspopup="menu"
         aria-expanded={isMenuOpen}
+        aria-controls={popupId}
         onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
@@ -55,10 +80,9 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
       </button>
 
       {isMenuOpen ? (
-        <div className="item-actions-menu" role="menu" aria-label={`פעולות עבור ${itemName}`}>
+        <div id={popupId} className="item-actions-menu" role="group" aria-label={`פעולות עבור ${itemName}`}>
           <button
             type="button"
-            role="menuitem"
             onClick={() => {
               closeMenu();
               onEdit();
@@ -66,7 +90,7 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
           >
             עריכה
           </button>
-          <button type="button" role="menuitem" className="item-actions-delete" onClick={openDeleteConfirmation}>
+          <button type="button" className="item-actions-delete" onClick={openDeleteConfirmation}>
             מחק
           </button>
         </div>
@@ -74,14 +98,20 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
 
       {isConfirmingDelete ? (
         <div className="confirmation-backdrop">
-          <section className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-label={`מחיקת ${itemName}`}>
+          <section
+            className="confirmation-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-label={`מחיקת ${itemName}`}
+            onKeyDown={handleDialogKeyDown}
+          >
             <h2>למחוק את {itemName}?</h2>
             <p>לא ניתן לבטל את הפעולה לאחר המחיקה.</p>
             <div className="confirmation-actions">
               <button ref={cancelRef} type="button" className="button button-quiet" onClick={cancelDelete}>
                 ביטול
               </button>
-              <button type="button" className="button button-danger" onClick={onDelete}>
+              <button ref={deleteRef} type="button" className="button button-danger" onClick={onDelete}>
                 מחק פריט
               </button>
             </div>
