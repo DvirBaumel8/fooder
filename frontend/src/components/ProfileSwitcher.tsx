@@ -26,17 +26,14 @@ interface ProfileSwitcherProps {
 
 export function ProfileSwitcher({ profile, onChange }: ProfileSwitcherProps) {
   return (
-    <div className="flex gap-1 text-sm">
+    <div className="profile-switcher" role="group" aria-label="בחירת פרופיל">
       {(["דביר", "מאי"] as const).map((name) => (
         <button
           key={name}
           type="button"
           onClick={() => onChange(name)}
-          className={
-            name === profile
-              ? "rounded-full bg-blue-600 px-3 py-1 text-white"
-              : "rounded-full border border-slate-300 px-3 py-1"
-          }
+          aria-pressed={name === profile}
+          className={name === profile ? "profile-chip profile-chip-active" : "profile-chip"}
         >
           {name}
         </button>

@@ -89,11 +89,11 @@ export default function App() {
     <main className="app-shell">
       <div className="app-container">
         <header className="app-header">
-          <div>
-            <p className="eyebrow">FOODER · רשימת הקניות שלנו</p>
-            <h1>היי, {profile} <span aria-hidden="true">👋</span></h1>
+          <div className="app-brand">
+            <p className="app-brand-label">Fooder</p>
+            <p className="app-brand-profile">שלום, {profile}</p>
           </div>
-        <ProfileSwitcher profile={profile} onChange={setProfile} />
+          <ProfileSwitcher profile={profile} onChange={setProfile} />
         </header>
 
         <ShopTabs activeShopId={activeShopId} onSelect={setActiveShopId} />
@@ -115,13 +115,6 @@ export default function App() {
 
       {!isError && !isLoading && (
         <>
-          <section className="list-summary">
-            <div>
-              <p className="section-kicker">הרשימה שלך</p>
-              <h2>{activeShop?.name ?? "החנות"}</h2>
-            </div>
-            <div className="count-badge"><strong>{activeItems.length}</strong><span>{activeItems.length === 1 ? "פריט" : "פריטים"}</span></div>
-          </section>
           <ListToolbar
             shopName={activeShop?.name ?? "החנות"}
             value={query}
@@ -129,6 +122,13 @@ export default function App() {
             sort={sort}
             onSortChange={setSort}
           />
+          <section className="list-summary">
+            <div>
+              <p className="section-kicker">הרשימה שלך</p>
+              <h2>{activeShop?.name ?? "החנות"}</h2>
+            </div>
+            <div className="count-badge"><strong>{activeItems.length}</strong><span>{activeItems.length === 1 ? "פריט" : "פריטים"}</span></div>
+          </section>
           <ShoppingList
             items={activeItems}
             query={query}
