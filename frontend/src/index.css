@@ -39,8 +39,9 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--color-prima
 .profile-trigger { display: grid; width: 44px; height: 44px; place-items: center; padding: 0; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-ink); font-size: .9rem; font-weight: 800; }
 .profile-trigger:hover, .profile-trigger[aria-expanded="true"] { border-color: var(--color-primary); background: var(--color-primary-soft); color: var(--color-primary-soft-ink); }
 .profile-menu { position: absolute; z-index: 5; top: calc(100% + 6px); inset-inline-end: 0; display: grid; min-width: 128px; padding: 4px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-md); }
-.profile-menu button { min-height: 44px; padding: 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-ink); font-weight: 700; text-align: start; }
+.profile-menu button { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 10px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--color-ink); font-weight: 700; text-align: start; }
 .profile-menu button:hover, .profile-menu button[aria-checked="true"] { background: var(--color-primary-soft); color: var(--color-primary-soft-ink); }
+.profile-menu-selection { font-size: 1rem; font-weight: 900; }
 
 .shop-panel { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
 .shop-scroller { display: flex; flex: 1; min-width: 0; gap: 6px; padding: 2px; overflow-x: auto; scrollbar-width: none; }

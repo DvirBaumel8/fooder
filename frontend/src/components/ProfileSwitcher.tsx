@@ -28,14 +28,23 @@ export function ProfileSwitcher({ profile, onChange }: ProfileSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const selectProfile = (name: Profile) => {
-    onChange(name);
+  const closeMenu = () => {
     setIsOpen(false);
     triggerRef.current?.focus();
   };
 
+  const selectProfile = (name: Profile) => {
+    onChange(name);
+    closeMenu();
+  };
+
   return (
-    <div className="profile-menu-root">
+    <div
+      className="profile-menu-root"
+      onKeyDown={(event) => {
+        if (isOpen && event.key === "Escape") closeMenu();
+      }}
+    >
       <button
         ref={triggerRef}
         type="button"
@@ -58,6 +67,7 @@ export function ProfileSwitcher({ profile, onChange }: ProfileSwitcherProps) {
               onClick={() => selectProfile(name)}
             >
               {name}
+              {name === profile && <span className="profile-menu-selection" aria-hidden="true">✓</span>}
             </button>
           ))}
         </div>
