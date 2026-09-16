@@ -13,6 +13,7 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
   const [newShopName, setNewShopName] = useState("");
   const addTriggerRef = useRef<HTMLButtonElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const popupId = useId();
 
   useEffect(() => {
@@ -23,6 +24,45 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
     setIsAddingShop(false);
     setNewShopName("");
     if (restoreFocus) addTriggerRef.current?.focus();
+  }
+
+  function focusAndSelectTab(index: number) {
+    if (!shops || shops.length === 0) return;
+    const nextIndex = (index + shops.length) % shops.length;
+    const nextShop = shops[nextIndex];
+    onSelect(nextShop.id);
+    tabRefs.current[nextIndex]?.focus();
+  }
+
+  function handleTablistKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (!shops || shops.length === 0) return;
+    const currentIndex = shops.findIndex((shop) => shop.id === activeShopId);
+    const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+
+    // dir="rtl": ArrowLeft moves focus visually left (forward through DOM
+    // order), ArrowRight moves focus visually right (backward through DOM
+    // order) — matching the WAI-ARIA tabs pattern's guidance to reverse the
+    // arrow-key mapping for right-to-left tablists.
+    switch (event.key) {
+      case "ArrowLeft":
+        event.preventDefault();
+        focusAndSelectTab(safeIndex + 1);
+        break;
+      case "ArrowRight":
+        event.preventDefault();
+        focusAndSelectTab(safeIndex - 1);
+        break;
+      case "Home":
+        event.preventDefault();
+        focusAndSelectTab(0);
+        break;
+      case "End":
+        event.preventDefault();
+        focusAndSelectTab(shops.length - 1);
+        break;
+      default:
+        break;
+    }
   }
 
   function handleCreateShop() {
@@ -38,12 +78,20 @@ export function ShopTabs({ activeShopId, onSelect }: ShopTabsProps) {
 
   return (
     <section className="shop-panel">
-      <div className="shop-scroller" role="tablist" aria-label="בחירת חנות">
-        {shops?.map((shop) => {
+      <div
+        className="shop-scroller"
+        role="tablist"
+        aria-label="בחירת חנות"
+        onKeyDown={handleTablistKeyDown}
+      >
+        {shops?.map((shop, index) => {
           const isActive = shop.id === activeShopId;
           return (
             <button
               key={shop.id}
+              ref={(el) => {
+                tabRefs.current[index] = el;
+              }}
               type="button"
               role="tab"
               aria-selected={isActive}

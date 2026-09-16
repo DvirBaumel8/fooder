@@ -45,6 +45,57 @@ it("marks the active shop as selected and keeps the tab list scrollable", () => 
   expect(screen.getByRole("tab", { name: "סופר-פארם" })).toHaveAttribute("aria-selected", "true");
 });
 
+it("moves focus and selection between shop tabs with arrow keys, matching RTL visual order", async () => {
+  const user = userEvent.setup();
+  const onSelect = vi.fn();
+  const { rerender } = render(<ShopTabs activeShopId="shop-1" onSelect={onSelect} />);
+
+  const firstTab = screen.getByRole("tab", { name: "שופרסל" });
+  const secondTab = screen.getByRole("tab", { name: "סופר-פארם" });
+
+  firstTab.focus();
+  expect(firstTab).toHaveFocus();
+
+  // dir="rtl": ArrowLeft moves focus visually left, i.e. forward through DOM order.
+  await user.keyboard("{ArrowLeft}");
+  expect(onSelect).toHaveBeenCalledWith("shop-2");
+  expect(secondTab).toHaveFocus();
+
+  // The parent owns activeShopId; simulate it committing the selection so the
+  // roving tabindex reflects reality, as it would in the real controlled app.
+  rerender(<ShopTabs activeShopId="shop-2" onSelect={onSelect} />);
+  expect(secondTab).toHaveAttribute("tabindex", "0");
+  expect(firstTab).toHaveAttribute("tabindex", "-1");
+
+  onSelect.mockClear();
+
+  // ArrowRight moves focus visually right, i.e. backward through DOM order.
+  await user.keyboard("{ArrowRight}");
+  expect(onSelect).toHaveBeenCalledWith("shop-1");
+  expect(firstTab).toHaveFocus();
+});
+
+it("moves focus to the first/last shop tab with Home/End", async () => {
+  const user = userEvent.setup();
+  const onSelect = vi.fn();
+  render(<ShopTabs activeShopId="shop-1" onSelect={onSelect} />);
+
+  const firstTab = screen.getByRole("tab", { name: "שופרסל" });
+  const secondTab = screen.getByRole("tab", { name: "סופר-פארם" });
+
+  firstTab.focus();
+
+  await user.keyboard("{End}");
+  expect(onSelect).toHaveBeenCalledWith("shop-2");
+  expect(secondTab).toHaveFocus();
+
+  onSelect.mockClear();
+
+  await user.keyboard("{Home}");
+  expect(onSelect).toHaveBeenCalledWith("shop-1");
+  expect(firstTab).toHaveFocus();
+});
+
 it("creates a shop through the existing create-shop API from the labeled create action", async () => {
   const user = userEvent.setup();
   const onSelect = vi.fn();

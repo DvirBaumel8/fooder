@@ -36,7 +36,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--color-prima
 .eyebrow, .section-kicker { margin: 0; color: var(--color-muted); font-size: .73rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 
 .profile-switcher { display: flex; flex-shrink: 0; gap: 2px; padding: 3px; border-radius: 999px; background: var(--color-bg); border: 1px solid var(--color-border); }
-.profile-chip { min-height: 36px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--color-muted); font-size: .84rem; font-weight: 700; }
+.profile-chip { min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: var(--color-muted); font-size: .84rem; font-weight: 700; }
 .profile-chip-active { background: var(--color-primary); color: var(--color-primary-contrast); box-shadow: var(--shadow-sm); }
 
 .shop-panel { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
@@ -50,6 +50,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--color-prima
 .shop-add-trigger:hover { border-color: var(--color-primary); }
 .shop-add-popover { position: absolute; z-index: 3; top: calc(100% + 6px); inset-inline-end: 0; display: grid; gap: 8px; width: max(220px, 100%); padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-md); }
 .shop-add-actions { display: flex; gap: 6px; }
+.shop-add-actions .button { min-height: 44px; }
 
 .list-summary { display: flex; align-items: end; justify-content: space-between; margin-bottom: 10px; }
 .list-summary h2, .add-sheet h2 { margin: 3px 0 0; color: var(--color-ink); font-size: 1.3rem; letter-spacing: -.03em; }
