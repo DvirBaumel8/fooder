@@ -25,6 +25,11 @@ database.
 
 ## Deployment (all free tier)
 
+### Production URLs
+
+- **Frontend (Vercel):** https://fooder-frontend.vercel.app/
+- **Backend (Render):** record the Render service URL here once it is confirmed.
+
 1. **Database — Neon**: already set up (one project, `production` branch,
    schema pushed via `prisma db push`). If starting over: create a free
    Neon Postgres project and copy its connection string.
