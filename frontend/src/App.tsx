@@ -3,7 +3,7 @@ import { useListQuery, useCompleteItem, useDeleteItem, useAddItem } from "./api/
 import { useShopsQuery } from "./api/shops";
 import { useListEvents } from "./api/useListEvents";
 import { AddItemSheet } from "./components/AddItemSheet";
-import { ShopTabs } from "./components/ShopTabs";
+import { ShopSelector } from "./components/ShopSelector";
 import { ProfileSwitcher, useProfile } from "./components/ProfileSwitcher";
 import { ListToolbar } from "./components/ListToolbar";
 import { ShoppingList } from "./components/ShoppingList";
@@ -129,7 +129,7 @@ export default function App() {
           <ProfileSwitcher profile={profile} onChange={setProfile} />
         </header>
 
-        <ShopTabs activeShopId={activeShopId} onSelect={setActiveShopId} />
+        <ShopSelector activeShopId={activeShopId} onSelect={setActiveShopId} />
 
         {isLoading && <div className="state-card"><span className="spinner" /> טוענים את הרשימה...</div>}
 
