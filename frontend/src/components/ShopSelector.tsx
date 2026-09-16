@@ -13,6 +13,7 @@ export function ShopSelector({ activeShopId, onSelect }: ShopSelectorProps) {
   const [isAddingShop, setIsAddingShop] = useState(false);
   const [newShopName, setNewShopName] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const selectedOptionRef = useRef<HTMLButtonElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const dialogTitleId = useId();
@@ -24,8 +25,43 @@ export function ShopSelector({ activeShopId, onSelect }: ShopSelectorProps) {
       nameInputRef.current?.focus();
       return;
     }
-    selectedOptionRef.current?.focus();
-  }, [isAddingShop, isOpen]);
+    if (selectedOptionRef.current) {
+      selectedOptionRef.current.focus();
+    } else {
+      dialogRef.current?.focus();
+    }
+  }, [isAddingShop, isOpen, activeShopId, shops]);
+
+  function getDialogFocusableElements() {
+    return Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+      ) ?? []
+    ).filter((element) => element.tabIndex >= 0);
+  }
+
+  function handleDialogKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeDialog({ restoreFocus: true });
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+    const focusableElements = getDialogFocusableElements();
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements.at(-1);
+    if (!firstElement || !lastElement) return;
+
+    const activeElement = document.activeElement;
+    if (event.shiftKey && (activeElement === firstElement || activeElement === dialogRef.current)) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && (activeElement === lastElement || activeElement === dialogRef.current)) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  }
 
   function closeDialog({ restoreFocus = false } = {}) {
     setIsOpen(false);
@@ -64,16 +100,13 @@ export function ShopSelector({ activeShopId, onSelect }: ShopSelectorProps) {
       {isOpen ? (
         <div className="shop-selector-backdrop">
           <div
+            ref={dialogRef}
             className="shop-selector-dialog"
             role="dialog"
             aria-modal="true"
             aria-labelledby={dialogTitleId}
-            onKeyDown={(event) => {
-              if (event.key === "Escape") {
-                event.preventDefault();
-                closeDialog({ restoreFocus: true });
-              }
-            }}
+            tabIndex={-1}
+            onKeyDown={handleDialogKeyDown}
           >
             <div className="shop-selector-dialog-header">
               <h2 id={dialogTitleId}>בחירת חנות</h2>

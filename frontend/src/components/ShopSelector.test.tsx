@@ -69,3 +69,34 @@ it("moves focus into the dialog and restores it after Escape", async () => {
   expect(screen.queryByRole("dialog", { name: "בחירת חנות" })).not.toBeInTheDocument();
   expect(trigger).toHaveFocus();
 });
+
+it("keeps Tab and Shift+Tab focus within the open dialog", async () => {
+  const user = userEvent.setup();
+  render(<ShopSelector activeShopId="shop-1" onSelect={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "החלפת חנות: שופרסל" }));
+  const dialog = screen.getByRole("dialog", { name: "בחירת חנות" });
+  const closeButton = screen.getByRole("button", { name: "סגירת בחירת חנות" });
+  const addShopButton = screen.getByRole("button", { name: "הוספת חנות" });
+
+  addShopButton.focus();
+  await user.tab();
+  expect(closeButton).toHaveFocus();
+  expect(dialog).toContainElement(document.activeElement);
+
+  await user.tab({ shift: true });
+  expect(addShopButton).toHaveFocus();
+  expect(dialog).toContainElement(document.activeElement);
+});
+
+it("keeps focus in the dialog before an active shop is assigned", async () => {
+  const user = userEvent.setup();
+  const { rerender } = render(<ShopSelector activeShopId={null} onSelect={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "החלפת חנות: בחירת חנות" }));
+  const dialog = screen.getByRole("dialog", { name: "בחירת חנות" });
+  expect(dialog).toContainElement(document.activeElement);
+
+  rerender(<ShopSelector activeShopId="shop-2" onSelect={vi.fn()} />);
+  expect(screen.getByRole("option", { name: "סופר-פארם" })).toHaveFocus();
+});
