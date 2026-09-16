@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import type { ShoppingListItem } from "../api/types";
@@ -76,6 +76,31 @@ it("keeps item fields visible after a save error", async () => {
 
   expect(await screen.findByText("לא הצלחנו לשמור את השינויים. נסו שוב.")).toBeVisible();
   expect(screen.getByLabelText("כמות")).toHaveValue("3");
+});
+
+it("closes the sheet after successfully adding a new item", async () => {
+  const onClose = vi.fn();
+  const user = userEvent.setup();
+  renderWithClient(<AddItemSheet shopId="shop-1" onClose={onClose} />);
+
+  await user.type(screen.getByLabelText("מוצר"), "גבינה");
+  await user.click(screen.getByRole("button", { name: "הוסף פריט" }));
+
+  await waitFor(() => expect(mutationState.add).toHaveBeenCalled());
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+});
+
+it("closes the sheet after successfully saving an edit", async () => {
+  const onClose = vi.fn();
+  const user = userEvent.setup();
+  renderWithClient(<AddItemSheet shopId="shop-1" item={milkItem} onClose={onClose} />);
+
+  await user.clear(screen.getByLabelText("כמות"));
+  await user.type(screen.getByLabelText("כמות"), "3");
+  await user.click(screen.getByRole("button", { name: "שמור שינויים" }));
+
+  await waitFor(() => expect(mutationState.update).toHaveBeenCalled());
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
 });
 
 it("retries only the photo upload after a create flow reaches a photo error", async () => {
