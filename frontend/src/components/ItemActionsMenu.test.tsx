@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { ItemActionsMenu } from "./ItemActionsMenu";
@@ -51,6 +51,40 @@ it("cancels deletion and restores trigger focus when Escape is pressed", async (
   await user.keyboard("{Escape}");
 
   expect(screen.queryByRole("alertdialog", { name: "מחיקת חלב" })).not.toBeInTheDocument();
+  expect(trigger).toHaveFocus();
+});
+
+it("returns focus to the trigger before invoking onEdit, so a later focus-restoring dialog captures it instead of <body> (finding #4)", async () => {
+  const user = userEvent.setup();
+  let triggerHadFocusWhenEditRan = false;
+  const onEdit = vi.fn(() => {
+    triggerHadFocusWhenEditRan =
+      document.activeElement === screen.getByRole("button", { name: "פעולות עבור חלב" });
+  });
+
+  render(<ItemActionsMenu itemName="חלב" onEdit={onEdit} onDelete={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "פעולות עבור חלב" }));
+  await user.click(screen.getByRole("button", { name: "עריכה" }));
+
+  expect(onEdit).toHaveBeenCalledOnce();
+  expect(triggerHadFocusWhenEditRan).toBe(true);
+});
+
+it("closes the delete confirmation and restores trigger focus when deletion fails (finding #3)", async () => {
+  const user = userEvent.setup();
+  const onDelete = vi.fn().mockRejectedValue(new Error("delete failed"));
+
+  render(<ItemActionsMenu itemName="חלב" onEdit={vi.fn()} onDelete={onDelete} />);
+
+  const trigger = screen.getByRole("button", { name: "פעולות עבור חלב" });
+  await user.click(trigger);
+  await user.click(screen.getByRole("button", { name: "מחק" }));
+  await user.click(screen.getByRole("button", { name: "מחק פריט" }));
+
+  await waitFor(() =>
+    expect(screen.queryByRole("alertdialog", { name: "מחיקת חלב" })).not.toBeInTheDocument()
+  );
   expect(trigger).toHaveFocus();
 });
 

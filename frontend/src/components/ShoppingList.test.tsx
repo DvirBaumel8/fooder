@@ -131,4 +131,31 @@ describe("Toast", () => {
     expect(onDismiss).toHaveBeenCalledOnce();
     vi.useRealTimers();
   });
+
+  it("gives a second toast with the same message its own full timer instead of inheriting the first toast's remaining time", () => {
+    // Regression test for finding #2: App renders <Toast key={toast.id} .../>, so a
+    // second "סומן כנקנה" toast (from completing another item) mounts as a fresh
+    // instance rather than reusing the first one's in-flight timer.
+    vi.useFakeTimers();
+    const onDismissFirst = vi.fn();
+    const onDismissSecond = vi.fn();
+
+    const { rerender } = render(
+      <Toast key="toast-1" message="סומן כנקנה" onDismiss={onDismissFirst} />
+    );
+
+    vi.advanceTimersByTime(3000);
+    rerender(<Toast key="toast-2" message="סומן כנקנה" onDismiss={onDismissSecond} />);
+
+    // Only 3s have elapsed since the second toast mounted (4s total including the
+    // first toast's head start) - it must still be showing.
+    vi.advanceTimersByTime(3000);
+    expect(onDismissSecond).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1000);
+    expect(onDismissSecond).toHaveBeenCalledOnce();
+    expect(onDismissFirst).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
 });

@@ -4,7 +4,7 @@ import { ItemActionsMenu } from "./ItemActionsMenu";
 interface ItemCardProps {
   item: ShoppingListItem;
   onComplete: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
   onEdit: (item: ShoppingListItem) => void;
 }
 

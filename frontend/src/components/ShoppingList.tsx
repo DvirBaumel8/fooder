@@ -9,7 +9,7 @@ interface ShoppingListProps {
   sort: ListSort;
   onComplete: (id: string) => void;
   onEdit: (item: ShoppingListItem) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => void | Promise<void>;
 }
 
 export function ShoppingList({ items, query, sort, onComplete, onEdit, onDelete }: ShoppingListProps) {

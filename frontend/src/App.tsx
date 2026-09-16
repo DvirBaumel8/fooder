@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useListQuery, useCompleteItem, useDeleteItem, useAddItem } from "./api/list";
 import { useShopsQuery } from "./api/shops";
 import { useListEvents } from "./api/useListEvents";
@@ -9,10 +9,11 @@ import { ListToolbar } from "./components/ListToolbar";
 import { ShoppingList } from "./components/ShoppingList";
 import { CompletedItems } from "./components/CompletedItems";
 import { Toast } from "./components/Toast";
-import type { ListSort } from "./lib/listPresentation";
+import { filterAndSortItems, type ListSort } from "./lib/listPresentation";
 import type { ShoppingListItem } from "./api/types";
 
 interface ToastState {
+  id: number;
   message: string;
   actionLabel?: string;
   item?: ShoppingListItem;
@@ -38,6 +39,13 @@ export default function App() {
   const [completedHistory, setCompletedHistory] = useState<ShoppingListItem[]>([]);
   const [toast, setToast] = useState<ToastState | null>(null);
   const restoreItem = useAddItem();
+  const toastIdRef = useRef(0);
+  const listHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  const showToast = (state: Omit<ToastState, "id">) => {
+    toastIdRef.current += 1;
+    setToast({ id: toastIdRef.current, ...state });
+  };
 
   useEffect(() => {
     if (!activeShopId && shops && shops.length > 0) {
@@ -50,6 +58,10 @@ export default function App() {
     [items, activeShopId]
   );
   const activeShop = shops?.find((shop) => shop.id === activeShopId);
+  const visibleItems = useMemo(
+    () => filterAndSortItems(activeItems, query, sort),
+    [activeItems, query, sort]
+  );
 
   const handleComplete = (id: string) => {
     const item = activeItems.find((entry) => entry.id === id);
@@ -57,14 +69,30 @@ export default function App() {
     completeItem.mutate(id, {
       onSuccess: () => {
         setCompletedHistory((current) => [item, ...current].slice(0, 3));
-        setToast({ message: "סומן כנקנה", actionLabel: "בטל", item });
+        showToast({ message: "סומן כנקנה", actionLabel: "בטל", item });
+      },
+      onError: () => {
+        showToast({ message: "לא הצלחנו לסמן את הפריט כנקנה. נסו שוב." });
       },
     });
   };
 
   const handleDelete = (id: string) => {
-    deleteItem.mutate(id, {
-      onSuccess: () => setToast({ message: "הפריט נמחק" }),
+    return new Promise<void>((resolve, reject) => {
+      deleteItem.mutate(id, {
+        onSuccess: () => {
+          showToast({ message: "הפריט נמחק" });
+          // The row (and its focused delete control) is about to unmount once the
+          // refetch resolves; move focus to a stable landmark instead of letting it
+          // fall back to <body>.
+          listHeadingRef.current?.focus();
+          resolve();
+        },
+        onError: () => {
+          showToast({ message: "לא הצלחנו למחוק את הפריט. נסו שוב." });
+          reject(new Error("delete-failed"));
+        },
+      });
     });
   };
 
@@ -81,9 +109,14 @@ export default function App() {
           setCompletedHistory((current) => current.filter((entry) => entry.id !== item.id));
           setToast((current) => (current?.item?.id === item.id ? null : current));
         },
+        onError: () => {
+          showToast({ message: "לא הצלחנו לשחזר את הפריט. נסו שוב." });
+        },
       }
     );
   };
+
+  const toastItem = toast?.item;
 
   return (
     <main className="app-shell">
@@ -125,9 +158,9 @@ export default function App() {
           <section className="list-summary">
             <div>
               <p className="section-kicker">הרשימה שלך</p>
-              <h2>{activeShop?.name ?? "החנות"}</h2>
+              <h2 ref={listHeadingRef} tabIndex={-1}>{activeShop?.name ?? "החנות"}</h2>
             </div>
-            <div className="count-badge"><strong>{activeItems.length}</strong><span>{activeItems.length === 1 ? "פריט" : "פריטים"}</span></div>
+            <div className="count-badge"><strong>{visibleItems.length}</strong><span>{visibleItems.length === 1 ? "פריט" : "פריטים"}</span></div>
           </section>
           <ShoppingList
             items={activeItems}
@@ -152,9 +185,10 @@ export default function App() {
 
       {toast && (
         <Toast
+          key={toast.id}
           message={toast.message}
           actionLabel={toast.actionLabel}
-          onAction={toast.item ? () => handleRestore(toast.item as ShoppingListItem) : undefined}
+          onAction={toastItem ? () => handleRestore(toastItem) : undefined}
           onDismiss={() => setToast(null)}
         />
       )}

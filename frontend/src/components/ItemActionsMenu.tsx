@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 type ItemActionsMenuProps = {
   itemName: string;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete: () => void | Promise<void>;
 };
 
 export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuProps) {
@@ -31,6 +31,20 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
   function cancelDelete() {
     setIsConfirmingDelete(false);
     triggerRef.current?.focus();
+  }
+
+  async function confirmDelete() {
+    try {
+      await onDelete();
+      // On success the row (and this menu) unmounts once the list refetches;
+      // nothing left to reset here.
+    } catch {
+      // The delete failed and the row is still mounted — close the confirmation
+      // instead of leaving it stuck open with no feedback, and return focus to
+      // the trigger that's still in the document.
+      setIsConfirmingDelete(false);
+      triggerRef.current?.focus();
+    }
   }
 
   function handleDialogKeyDown(event: React.KeyboardEvent<HTMLElement>) {
@@ -84,7 +98,10 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
           <button
             type="button"
             onClick={() => {
-              closeMenu();
+              // Restore focus to the trigger synchronously, before this button
+              // (and the popup it lives in) unmounts, so AddItemSheet's
+              // open-focus effect captures the trigger rather than <body>.
+              closeMenu({ restoreFocus: true });
               onEdit();
             }}
           >
@@ -111,7 +128,7 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
               <button ref={cancelRef} type="button" className="button button-quiet" onClick={cancelDelete}>
                 ביטול
               </button>
-              <button ref={deleteRef} type="button" className="button button-danger" onClick={onDelete}>
+              <button ref={deleteRef} type="button" className="button button-danger" onClick={() => void confirmDelete()}>
                 מחק פריט
               </button>
             </div>

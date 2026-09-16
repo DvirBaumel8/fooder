@@ -78,8 +78,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--color-prima
 .item-meta, .item-note { margin: 3px 0 0; overflow: hidden; color: var(--color-muted); font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
 .item-note { font-style: italic; }
 
-.button { border: 0; border-radius: var(--radius-md); padding: 8px 12px; font-weight: 800; }
-.button-small { padding: 6px 9px; font-size: .78rem; }
+.button { min-height: 44px; border: 0; border-radius: var(--radius-md); padding: 8px 12px; font-weight: 800; }
+.button-small { min-height: 36px; padding: 6px 9px; font-size: .78rem; }
 .button-primary { background: var(--color-primary); color: var(--color-primary-contrast); }
 .button-quiet { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-muted); }
 .button-danger { background: var(--color-danger); color: #fff; }
@@ -101,7 +101,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--color-prima
 .confirmation-actions { display: flex; justify-content: flex-start; gap: 8px; margin-top: 20px; }
 .confirmation-actions .button { min-height: 44px; }
 
-.add-button { position: fixed; right: max(20px, calc((100vw - 640px) / 2)); bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)); display: inline-flex; align-items: center; gap: 7px; padding: 12px 19px; border: 0; border-radius: 999px; background: var(--color-primary); color: var(--color-primary-contrast); font-weight: 800; box-shadow: var(--shadow-md); }
+.add-button { position: fixed; right: max(20px, calc((100vw - 640px) / 2)); bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px)); display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 12px 19px; border: 0; border-radius: 999px; background: var(--color-primary); color: var(--color-primary-contrast); font-weight: 800; box-shadow: var(--shadow-md); }
 .add-button span:first-child { font-size: 1.25rem; line-height: .7; }
 .add-button:disabled { opacity: .45; }
 
@@ -123,7 +123,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--color-prima
 .completed-restore { min-height: 44px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--color-primary-soft); color: var(--color-primary-soft-ink); font-size: .78rem; font-weight: 800; }
 .completed-restore:disabled { opacity: .5; }
 
-.toast { position: fixed; z-index: 30; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; display: flex; align-items: center; gap: 10px; width: min(calc(100% - 32px), 420px); padding: 10px 12px; border-radius: var(--radius-md); background: var(--color-ink); color: var(--color-surface); box-shadow: var(--shadow-md); transform: translateX(-50%); }
+.toast { position: fixed; z-index: 30; bottom: max(20px, calc(env(safe-area-inset-bottom) + 76px)); left: 50%; display: flex; align-items: center; gap: 10px; width: min(calc(100% - 32px), 420px); padding: 10px 12px; border-radius: var(--radius-md); background: var(--color-ink); color: var(--color-surface); box-shadow: var(--shadow-md); transform: translateX(-50%); }
 .toast-message { flex: 1; margin: 0; font-size: .86rem; font-weight: 700; }
 .toast-action { min-height: 44px; padding: 0 10px; border: 0; border-radius: 8px; background: rgba(255, 255, 255, .12); color: var(--color-primary-soft); font-size: .8rem; font-weight: 800; white-space: nowrap; }
 .toast-dismiss { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--color-border); }
