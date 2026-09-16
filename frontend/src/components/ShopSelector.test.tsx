@@ -26,6 +26,14 @@ beforeEach(() => {
   addShopMutation.isError = false;
 });
 
+function expectFocusInsideDialog(dialog: HTMLElement) {
+  const activeElement = document.activeElement;
+  if (!(activeElement instanceof HTMLElement)) {
+    throw new Error("Expected focus to remain on an element inside the shop selector dialog");
+  }
+  expect(dialog).toContainElement(activeElement);
+}
+
 it("shows only the active shop on the page and selects another shop from its dialog", async () => {
   const user = userEvent.setup();
   const onSelect = vi.fn();
@@ -82,11 +90,11 @@ it("keeps Tab and Shift+Tab focus within the open dialog", async () => {
   addShopButton.focus();
   await user.tab();
   expect(closeButton).toHaveFocus();
-  expect(dialog).toContainElement(document.activeElement);
+  expectFocusInsideDialog(dialog);
 
   await user.tab({ shift: true });
   expect(addShopButton).toHaveFocus();
-  expect(dialog).toContainElement(document.activeElement);
+  expectFocusInsideDialog(dialog);
 });
 
 it("keeps focus in the dialog before an active shop is assigned", async () => {
@@ -95,7 +103,7 @@ it("keeps focus in the dialog before an active shop is assigned", async () => {
 
   await user.click(screen.getByRole("button", { name: "החלפת חנות: בחירת חנות" }));
   const dialog = screen.getByRole("dialog", { name: "בחירת חנות" });
-  expect(dialog).toContainElement(document.activeElement);
+  expectFocusInsideDialog(dialog);
 
   rerender(<ShopSelector activeShopId="shop-2" onSelect={vi.fn()} />);
   expect(screen.getByRole("option", { name: "סופר-פארם" })).toHaveFocus();
