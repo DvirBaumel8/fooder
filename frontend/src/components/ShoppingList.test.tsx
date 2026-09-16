@@ -11,7 +11,7 @@ const milkItem: ShoppingListItem = {
   quantity: "2",
   note: "ללא לקטוז",
   createdAt: "2026-09-16T10:00:00.000Z",
-  product: { id: "product-1", name: "חלב", category: "מוצרי חלב", photoUrl: null },
+  product: { id: "product-1", name: "חלב", category: "מוצרי חלב", photoUrl: "/milk.jpg" },
   shop: { id: "shop-1", name: "הסופר שלי" },
 };
 
@@ -39,6 +39,7 @@ describe("ShoppingList", () => {
 
     expect(screen.getByText("לא נמצאו פריטים")).toBeVisible();
     expect(screen.getByText("חפשו מונח אחר או הוסיפו פריט חדש.")).toBeVisible();
+    expect(document.querySelector(".empty-icon")).not.toBeInTheDocument();
   });
 
   it("shows a distinct empty state for a shop with no items at all", () => {
@@ -48,6 +49,7 @@ describe("ShoppingList", () => {
 
     expect(screen.getByText("אין פריטים ברשימה")).toBeVisible();
     expect(screen.queryByText("לא נמצאו פריטים")).not.toBeInTheDocument();
+    expect(document.querySelector(".empty-icon")).not.toBeInTheDocument();
   });
 
   it("renders filtered and sorted items and wires row actions", async () => {
@@ -69,8 +71,13 @@ describe("ShoppingList", () => {
 
     const names = screen.getAllByText(/^(חלב|ביצים)$/).map((node) => node.textContent);
     expect(names).toEqual(["ביצים", "חלב"]);
+    expect(screen.getByRole("list", { name: "פריטים לקנייה" })).toBeVisible();
+    expect(screen.getByText("2 · מוצרי חלב · ללא לקטוז")).toBeVisible();
+    expect(document.querySelector(".item-list img")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "סמן את חלב כנקנה" }));
+    const completeButton = screen.getByRole("button", { name: "סמן את חלב כנקנה" });
+    expect(completeButton).toBeVisible();
+    await user.click(completeButton);
     expect(onComplete).toHaveBeenCalledWith("item-1");
   });
 });
@@ -81,7 +88,7 @@ describe("CompletedItems", () => {
     render(<CompletedItems items={[milkItem]} onRestore={vi.fn()} />);
 
     expect(screen.queryByText("חלב")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "פריטים שנקנו (1)" }));
+    await user.click(screen.getByRole("button", { name: "נקנה (1)" }));
     expect(screen.getByText("חלב")).toBeVisible();
   });
 
@@ -90,15 +97,16 @@ describe("CompletedItems", () => {
     const onRestore = vi.fn();
     render(<CompletedItems items={[milkItem]} onRestore={onRestore} />);
 
-    await user.click(screen.getByRole("button", { name: "פריטים שנקנו (1)" }));
-    await user.click(screen.getByRole("button", { name: /שחזור.*חלב/ }));
+    await user.click(screen.getByRole("button", { name: "נקנה (1)" }));
+    expect(screen.getByRole("button", { name: "שחזור חלב" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "שחזור חלב" }));
 
     expect(onRestore).toHaveBeenCalledWith(milkItem);
   });
 
   it("renders nothing when there is no completion history", () => {
     render(<CompletedItems items={[]} onRestore={vi.fn()} />);
-    expect(screen.queryByRole("button", { name: /פריטים שנקנו/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /נקנה/ })).not.toBeInTheDocument();
   });
 });
 

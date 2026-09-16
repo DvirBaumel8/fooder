@@ -15,6 +15,14 @@ const sortOptions: Array<{ value: ListSort; label: string }> = [
   { value: "category", label: "לפי קטגוריה" },
 ];
 
+function SortIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+      <path d="M7 6h10M9 12h6m-8 6h10" />
+    </svg>
+  );
+}
+
 export function ListToolbar({ shopName, value, onSearchChange, sort, onSortChange }: ListToolbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(value);
@@ -57,11 +65,13 @@ export function ListToolbar({ shopName, value, onSearchChange, sort, onSortChang
         <button
           ref={sortTriggerRef}
           type="button"
+          className="sort-trigger"
+          aria-label={`מיון: ${selectedSort.label}`}
           aria-haspopup="menu"
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((isOpen) => !isOpen)}
         >
-          מיון: {selectedSort.label}
+          <SortIcon />
         </button>
         {isMenuOpen ? (
           <div className="sort-menu" role="menu" aria-label="אפשרויות מיון">

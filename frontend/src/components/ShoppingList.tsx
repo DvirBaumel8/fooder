@@ -18,7 +18,6 @@ export function ShoppingList({ items, query, sort, onComplete, onEdit, onDelete 
   if (items.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon" aria-hidden="true">✦</div>
         <h2>אין פריטים ברשימה</h2>
         <p>הוסיפו פריט כשמשהו מתחיל להיגמר.</p>
       </div>
@@ -28,7 +27,6 @@ export function ShoppingList({ items, query, sort, onComplete, onEdit, onDelete 
   if (visibleItems.length === 0) {
     return (
       <div className="empty-state">
-        <div className="empty-icon" aria-hidden="true">✦</div>
         <h2>לא נמצאו פריטים</h2>
         <p>חפשו מונח אחר או הוסיפו פריט חדש.</p>
       </div>
@@ -36,7 +34,7 @@ export function ShoppingList({ items, query, sort, onComplete, onEdit, onDelete 
   }
 
   return (
-    <ul className="item-list">
+    <ul className="item-list" aria-label="פריטים לקנייה">
       {visibleItems.map((item) => (
         <ItemCard key={item.id} item={item} onComplete={onComplete} onEdit={onEdit} onDelete={onDelete} />
       ))}

@@ -9,28 +9,13 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item, onComplete, onDelete, onEdit }: ItemCardProps) {
-  return (
-    <li className="item-card">
-      {item.product.photoUrl ? (
-        <img
-          src={item.product.photoUrl}
-          alt={item.product.name}
-          className="item-photo"
-        />
-      ) : (
-        <div className="item-photo item-photo-empty" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false">
-            <path d="M4 5h2l1.8 9h8.9l2-6H8.2M10 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2m6 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2" />
-          </svg>
-        </div>
-      )}
+  const metadata = [item.quantity, item.product.category, item.note].filter(Boolean).join(" · ");
 
+  return (
+    <li className="item-row">
       <div className="item-copy">
         <p className="item-name">{item.product.name}</p>
-        <p className="item-meta">
-          {[item.quantity, item.product.category].filter(Boolean).join(" · ")}
-        </p>
-        {item.note && <p className="item-note">{item.note}</p>}
+        {metadata && <p className="item-meta">{metadata}</p>}
       </div>
 
       <button

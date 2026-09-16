@@ -21,7 +21,7 @@ export function CompletedItems({ items, onRestore, isRestoring = false }: Comple
         aria-controls="completed-list"
         onClick={() => setIsExpanded((current) => !current)}
       >
-        <span>פריטים שנקנו ({items.length})</span>
+        <span>נקנה ({items.length})</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="m6 9 6 6 6-6" />
         </svg>

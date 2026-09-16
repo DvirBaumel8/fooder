@@ -20,7 +20,10 @@ it("updates search and chooses a visible sort option", async () => {
   );
 
   await user.type(screen.getByRole("searchbox", { name: "חיפוש ברשימת ניצת הדובדבן" }), "חלב");
-  await user.click(screen.getByRole("button", { name: "מיון: חדש ביותר" }));
+  const sortButton = screen.getByRole("button", { name: "מיון: חדש ביותר" });
+  expect(sortButton).toHaveAttribute("aria-label", "מיון: חדש ביותר");
+
+  await user.click(sortButton);
   await user.click(screen.getByRole("menuitemradio", { name: "לפי שם" }));
 
   expect(onSearchChange).toHaveBeenLastCalledWith("חלב");

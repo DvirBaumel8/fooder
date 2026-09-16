@@ -136,7 +136,7 @@ it("shows a Hebrew error toast when restoring a completed item fails (finding #3
   await user.click(await screen.findByRole("button", { name: "סמן את חלב כנקנה" }));
   await screen.findByText("סומן כנקנה");
 
-  await user.click(screen.getByRole("button", { name: "פריטים שנקנו (1)" }));
+  await user.click(screen.getByRole("button", { name: "נקנה (1)" }));
   await user.click(screen.getByRole("button", { name: /שחזור.*חלב/ }));
 
   expect(await screen.findByText("לא הצלחנו לשחזר את הפריט. נסו שוב.")).toBeVisible();
