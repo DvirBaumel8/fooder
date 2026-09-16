@@ -2,11 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { useListQuery, useCompleteItem, useDeleteItem, useAddItem } from "./api/list";
 import { useShopsQuery } from "./api/shops";
 import { useListEvents } from "./api/useListEvents";
-import { ItemCard } from "./components/ItemCard";
 import { AddItemSheet } from "./components/AddItemSheet";
 import { ShopTabs } from "./components/ShopTabs";
 import { ProfileSwitcher, useProfile } from "./components/ProfileSwitcher";
+import { ListToolbar } from "./components/ListToolbar";
+import { ShoppingList } from "./components/ShoppingList";
+import { CompletedItems } from "./components/CompletedItems";
+import { Toast } from "./components/Toast";
+import type { ListSort } from "./lib/listPresentation";
 import type { ShoppingListItem } from "./api/types";
+
+interface ToastState {
+  message: string;
+  actionLabel?: string;
+  item?: ShoppingListItem;
+}
 
 export default function App() {
   useListEvents();
@@ -23,7 +33,10 @@ export default function App() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null);
   const [activeShopId, setActiveShopId] = useState<string | null>(null);
-  const [recentlyBought, setRecentlyBought] = useState<ShoppingListItem[]>([]);
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<ListSort>("newest");
+  const [completedHistory, setCompletedHistory] = useState<ShoppingListItem[]>([]);
+  const [toast, setToast] = useState<ToastState | null>(null);
   const restoreItem = useAddItem();
 
   useEffect(() => {
@@ -32,17 +45,26 @@ export default function App() {
     }
   }, [shops, activeShopId]);
 
-  const visibleItems = useMemo(
+  const activeItems = useMemo(
     () => items?.filter((item) => item.shop.id === activeShopId) ?? [],
     [items, activeShopId]
   );
   const activeShop = shops?.find((shop) => shop.id === activeShopId);
 
   const handleComplete = (id: string) => {
-    const item = visibleItems.find((entry) => entry.id === id);
+    const item = activeItems.find((entry) => entry.id === id);
     if (!item) return;
     completeItem.mutate(id, {
-      onSuccess: () => setRecentlyBought((current) => [item, ...current].slice(0, 3)),
+      onSuccess: () => {
+        setCompletedHistory((current) => [item, ...current].slice(0, 3));
+        setToast({ message: "סומן כנקנה", actionLabel: "בטל", item });
+      },
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    deleteItem.mutate(id, {
+      onSuccess: () => setToast({ message: "הפריט נמחק" }),
     });
   };
 
@@ -55,8 +77,10 @@ export default function App() {
         note: item.note ?? undefined,
       },
       {
-        onSuccess: () =>
-          setRecentlyBought((current) => current.filter((entry) => entry.id !== item.id)),
+        onSuccess: () => {
+          setCompletedHistory((current) => current.filter((entry) => entry.id !== item.id));
+          setToast((current) => (current?.item?.id === item.id ? null : current));
+        },
       }
     );
   };
@@ -96,20 +120,24 @@ export default function App() {
               <p className="section-kicker">הרשימה שלך</p>
               <h2>{activeShop?.name ?? "החנות"}</h2>
             </div>
-            <div className="count-badge"><strong>{visibleItems.length}</strong><span>{visibleItems.length === 1 ? "פריט" : "פריטים"}</span></div>
+            <div className="count-badge"><strong>{activeItems.length}</strong><span>{activeItems.length === 1 ? "פריט" : "פריטים"}</span></div>
           </section>
-          {visibleItems.length > 0 ? <ul className="item-list">
-          {visibleItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onComplete={handleComplete}
-              onDelete={(id) => deleteItem.mutate(id)}
-              onEdit={setEditingItem}
-            />
-          ))}
-          </ul> : <div className="empty-state"><div className="empty-icon">✦</div><h2>העגלה ריקה, איזה כיף</h2><p>אין כאן מה לקנות כרגע. הוסיפו פריט כשמשהו מתחיל להיגמר.</p></div>}
-          {recentlyBought.length > 0 && <section className="bought-section"><p className="section-kicker">נקנה עכשיו</p><div className="bought-list">{recentlyBought.map((item) => <div key={item.id} className="bought-entry"><span className="bought-pill">✓ {item.product.name}</span><button type="button" className="bought-undo" onClick={() => handleRestore(item)} disabled={restoreItem.isPending}>בטל</button></div>)}</div></section>}
+          <ListToolbar
+            shopName={activeShop?.name ?? "החנות"}
+            value={query}
+            onSearchChange={setQuery}
+            sort={sort}
+            onSortChange={setSort}
+          />
+          <ShoppingList
+            items={activeItems}
+            query={query}
+            sort={sort}
+            onComplete={handleComplete}
+            onEdit={setEditingItem}
+            onDelete={handleDelete}
+          />
+          <CompletedItems items={completedHistory} onRestore={handleRestore} isRestoring={restoreItem.isPending} />
         </>
       )}
 
@@ -121,6 +149,15 @@ export default function App() {
       >
         <span aria-hidden="true">＋</span><span>הוסף פריט</span>
       </button>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          actionLabel={toast.actionLabel}
+          onAction={toast.item ? () => handleRestore(toast.item as ShoppingListItem) : undefined}
+          onDismiss={() => setToast(null)}
+        />
+      )}
 
       {isAdding && activeShopId && (
         <AddItemSheet shopId={activeShopId} onClose={() => setIsAdding(false)} />
