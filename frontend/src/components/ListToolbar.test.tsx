@@ -1,0 +1,49 @@
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
+import { ListToolbar } from "./ListToolbar";
+import { renderWithClient } from "../test/render";
+
+it("updates search and chooses a visible sort option", async () => {
+  const user = userEvent.setup();
+  const onSearchChange = vi.fn();
+  const onSortChange = vi.fn();
+
+  renderWithClient(
+    <ListToolbar
+      shopName="ניצת הדובדבן"
+      value=""
+      onSearchChange={onSearchChange}
+      sort="newest"
+      onSortChange={onSortChange}
+    />,
+  );
+
+  await user.type(screen.getByRole("searchbox", { name: "חיפוש ברשימת ניצת הדובדבן" }), "חלב");
+  await user.click(screen.getByRole("button", { name: "מיון: חדש ביותר" }));
+  await user.click(screen.getByRole("menuitemradio", { name: "לפי שם" }));
+
+  expect(onSearchChange).toHaveBeenLastCalledWith("חלב");
+  expect(onSortChange).toHaveBeenCalledWith("name");
+});
+
+it("closes the sort options when Escape is pressed", async () => {
+  const user = userEvent.setup();
+
+  renderWithClient(
+    <ListToolbar
+      shopName="ניצת הדובדבן"
+      value=""
+      onSearchChange={vi.fn()}
+      sort="newest"
+      onSortChange={vi.fn()}
+    />,
+  );
+
+  const sortButton = screen.getByRole("button", { name: "מיון: חדש ביותר" });
+  await user.click(sortButton);
+  await user.keyboard("{Escape}");
+
+  expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  expect(sortButton).toHaveAttribute("aria-expanded", "false");
+});
