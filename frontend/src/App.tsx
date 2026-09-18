@@ -179,8 +179,9 @@ export default function App() {
         onClick={() => setIsAdding(true)}
         disabled={!activeShopId}
         className="add-button"
+        aria-label="הוספת פריט"
       >
-        <span aria-hidden="true">＋</span><span>הוסף פריט</span>
+        <span aria-hidden="true">＋</span>
       </button>
 
       {toast && (

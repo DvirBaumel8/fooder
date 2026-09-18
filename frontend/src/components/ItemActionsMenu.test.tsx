@@ -9,7 +9,10 @@ it("requires confirmation before deleting an item", async () => {
 
   render(<ItemActionsMenu itemName="חלב" onEdit={vi.fn()} onDelete={onDelete} />);
 
-  await user.click(screen.getByRole("button", { name: "פעולות עבור חלב" }));
+  const trigger = screen.getByRole("button", { name: "פעולות עבור חלב" });
+  expect(trigger).toBeVisible();
+
+  await user.click(trigger);
   await user.click(screen.getByRole("button", { name: "מחק" }));
 
   expect(screen.getByRole("alertdialog", { name: "מחיקת חלב" })).toBeVisible();

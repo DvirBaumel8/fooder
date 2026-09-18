@@ -58,6 +58,12 @@ beforeEach(() => {
   mutationState.upload.mockResolvedValue(milkItem.product);
 });
 
+it("keeps the sticky save action and the compact add control separately labelled", () => {
+  renderWithClient(<AddItemSheet shopId="shop-1" onClose={vi.fn()} />);
+
+  expect(screen.getByRole("button", { name: "הוסף פריט" })).toHaveClass("sheet-save-action");
+});
+
 it("shows product identity as read-only while allowing item details to be edited", () => {
   renderWithClient(<AddItemSheet shopId="shop-1" item={milkItem} onClose={vi.fn()} />);
 

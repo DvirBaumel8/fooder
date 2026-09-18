@@ -67,6 +67,12 @@ beforeEach(() => {
   addItemMutation.mutate.mockReset();
 });
 
+it("keeps the add-item control available as a labelled compact action", async () => {
+  render(<App />);
+
+  expect(await screen.findByRole("button", { name: "הוספת פריט" })).toBeEnabled();
+});
+
 it("keeps the item count in sync with the active search filter (finding #5)", async () => {
   const user = userEvent.setup();
   render(<App />);

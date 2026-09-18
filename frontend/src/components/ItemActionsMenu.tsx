@@ -94,7 +94,7 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
       </button>
 
       {isMenuOpen ? (
-        <div id={popupId} className="item-actions-menu" role="group" aria-label={`פעולות עבור ${itemName}`}>
+        <div id={popupId} className="item-actions-menu ledger-menu" role="group" aria-label={`פעולות עבור ${itemName}`}>
           <button
             type="button"
             onClick={() => {
@@ -116,7 +116,7 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
       {isConfirmingDelete ? (
         <div className="confirmation-backdrop">
           <section
-            className="confirmation-dialog"
+            className="confirmation-dialog ledger-dialog"
             role="alertdialog"
             aria-modal="true"
             aria-label={`מחיקת ${itemName}`}

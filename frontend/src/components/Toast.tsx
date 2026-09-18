@@ -17,7 +17,7 @@ export function Toast({ message, actionLabel, onAction, onDismiss }: ToastProps)
   }, [message]);
 
   return (
-    <div className="toast" role="status" aria-live="polite">
+    <div className="toast ledger-toast" role="status" aria-live="polite">
       <p className="toast-message">{message}</p>
       {actionLabel && onAction && (
         <button type="button" className="toast-action" onClick={onAction}>

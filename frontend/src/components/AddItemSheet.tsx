@@ -126,7 +126,7 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
       onMouseDown={(event) => event.target === event.currentTarget && closeSheet()}
     >
       <section
-        className="add-sheet"
+        className="add-sheet ledger-sheet"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-item-title"
@@ -243,7 +243,7 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
         </div>
 
         <div className="sheet-actions">
-          <button type="button" onClick={isEditing ? () => void handleUpdate() : handleCreateNew} disabled={(!isEditing && !normalizedSearch) || isBusy} className="button button-primary add-new-button">
+          <button type="button" onClick={isEditing ? () => void handleUpdate() : handleCreateNew} disabled={(!isEditing && !normalizedSearch) || isBusy} className="button button-primary add-new-button sheet-save-action">
             {isBusy ? (isEditing ? "שומר..." : "מוסיף...") : isEditing ? "שמור שינויים" : pendingPhotoProductId ? "נסה להעלות שוב" : "הוסף פריט"}
           </button>
           <button type="button" onClick={closeSheet} disabled={isBusy} className="button button-quiet">ביטול</button>
