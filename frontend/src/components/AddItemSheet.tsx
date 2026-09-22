@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useProductsQuery, useUploadProductPhoto } from "../api/products";
 import { useAddItem, useUpdateItem } from "../api/list";
 import type { ShoppingListItem } from "../api/types";
@@ -30,16 +30,27 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
   const uploadPhoto = useUploadProductPhoto();
   const isBusy = isSubmitting || addItem.isPending || updateItem.isPending || uploadPhoto.isPending;
 
+  const closeSheet = useCallback(() => {
+    if (isBusy) return;
+    onClose();
+    window.setTimeout(() => returnFocusRef.current?.focus(), 0);
+  }, [isBusy, onClose]);
+
   useEffect(() => {
     returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     (isEditing ? headingRef.current : nameInputRef.current)?.focus();
   }, [isEditing]);
 
-  const closeSheet = () => {
-    if (isBusy) return;
-    onClose();
-    window.setTimeout(() => returnFocusRef.current?.focus(), 0);
-  };
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      closeSheet();
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [closeSheet]);
 
   const uploadSelectedPhoto = async (productId: string) => {
     if (file) {
@@ -130,12 +141,6 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-item-title"
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            event.preventDefault();
-            closeSheet();
-          }
-        }}
       >
         <div className="sheet-handle" aria-hidden="true" />
         <div className="sheet-header">

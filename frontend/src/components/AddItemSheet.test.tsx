@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import type { ShoppingListItem } from "../api/types";
@@ -82,6 +82,26 @@ it("keeps item fields visible after a save error", async () => {
 
   expect(await screen.findByText("לא הצלחנו לשמור את השינויים. נסו שוב.")).toBeVisible();
   expect(screen.getByLabelText("כמות")).toHaveValue("3");
+});
+
+it("closes and restores focus when Escape follows a failed add", async () => {
+  mutationState.add.mockRejectedValueOnce(new Error("Create failed"));
+  const returnFocusTarget = document.createElement("button");
+  document.body.append(returnFocusTarget);
+  returnFocusTarget.focus();
+  const onClose = vi.fn();
+  const user = userEvent.setup();
+  renderWithClient(<AddItemSheet shopId="shop-1" onClose={onClose} />);
+
+  await user.type(screen.getByLabelText("מוצר"), "גבינה");
+  await user.click(screen.getByRole("button", { name: "הוסף פריט" }));
+  expect(await screen.findByText("לא הצלחנו להוסיף את הפריט. נסו שוב.")).toBeVisible();
+
+  fireEvent.keyDown(document, { key: "Escape" });
+
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(document.activeElement).toBe(returnFocusTarget));
+  returnFocusTarget.remove();
 });
 
 it("closes the sheet after successfully adding a new item", async () => {
