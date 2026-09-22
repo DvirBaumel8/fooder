@@ -76,6 +76,11 @@ describe("ShoppingList", () => {
     expect(document.querySelector(".item-list img")).not.toBeInTheDocument();
 
     const completeButton = screen.getByRole("button", { name: "סמן את חלב כנקנה" });
+    const milkRow = completeButton.closest("li");
+    expect(milkRow).not.toBeNull();
+    expect(milkRow?.firstElementChild).toBe(completeButton);
+    expect(milkRow?.children[1]).toHaveClass("item-copy");
+    expect(milkRow?.lastElementChild).toHaveClass("item-actions");
     expect(completeButton).toBeVisible();
     await user.click(completeButton);
     expect(onComplete).toHaveBeenCalledWith("item-1");

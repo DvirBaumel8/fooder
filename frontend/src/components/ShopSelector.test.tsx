@@ -78,6 +78,51 @@ it("moves focus into the dialog and restores it after Escape", async () => {
   expect(trigger).toHaveFocus();
 });
 
+it("uses RTL arrow keys to move controlled listbox selection with roving focus", async () => {
+  const user = userEvent.setup();
+  const onSelect = vi.fn();
+  const { rerender } = render(<ShopSelector activeShopId="shop-1" onSelect={onSelect} />);
+
+  await user.click(screen.getByRole("button", { name: "החלפת חנות: שופרסל" }));
+  const firstOption = screen.getByRole("option", { name: "שופרסל" });
+  const secondOption = screen.getByRole("option", { name: "סופר-פארם" });
+
+  expect(firstOption).toHaveAttribute("tabindex", "0");
+  expect(secondOption).toHaveAttribute("tabindex", "-1");
+
+  await user.keyboard("{ArrowLeft}");
+  expect(onSelect).toHaveBeenCalledWith("shop-2");
+  expect(secondOption).toHaveFocus();
+
+  rerender(<ShopSelector activeShopId="shop-2" onSelect={onSelect} />);
+  expect(secondOption).toHaveAttribute("tabindex", "0");
+  expect(firstOption).toHaveAttribute("tabindex", "-1");
+
+  onSelect.mockClear();
+  await user.keyboard("{ArrowRight}");
+  expect(onSelect).toHaveBeenCalledWith("shop-1");
+  expect(firstOption).toHaveFocus();
+});
+
+it("uses Home and End to select the first and last listbox options", async () => {
+  const user = userEvent.setup();
+  const onSelect = vi.fn();
+  render(<ShopSelector activeShopId="shop-1" onSelect={onSelect} />);
+
+  await user.click(screen.getByRole("button", { name: "החלפת חנות: שופרסל" }));
+  const firstOption = screen.getByRole("option", { name: "שופרסל" });
+  const secondOption = screen.getByRole("option", { name: "סופר-פארם" });
+
+  await user.keyboard("{End}");
+  expect(onSelect).toHaveBeenCalledWith("shop-2");
+  expect(secondOption).toHaveFocus();
+
+  onSelect.mockClear();
+  await user.keyboard("{Home}");
+  expect(onSelect).toHaveBeenCalledWith("shop-1");
+  expect(firstOption).toHaveFocus();
+});
+
 it("keeps Tab and Shift+Tab focus within the open dialog", async () => {
   const user = userEvent.setup();
   render(<ShopSelector activeShopId="shop-1" onSelect={vi.fn()} />);

@@ -73,15 +73,17 @@ it("keeps the add-item control available as a labelled compact action", async ()
   expect(await screen.findByRole("button", { name: "הוספת פריט" })).toBeEnabled();
 });
 
-it("keeps the item count in sync with the active search filter (finding #5)", async () => {
+it("keeps the small remaining-count list heading in sync with the active search filter", async () => {
   const user = userEvent.setup();
   render(<App />);
 
-  expect(await screen.findByText("2", { selector: ".count-badge strong" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "לקנות · 2 פריטים" })).toBeInTheDocument();
+  expect(screen.queryByText("הסופר שלי", { selector: ".list-summary h2" })).not.toBeInTheDocument();
+  expect(document.querySelector(".count-badge")).not.toBeInTheDocument();
 
   await user.type(screen.getByRole("searchbox", { name: /חיפוש ברשימת/ }), "פסטה");
 
-  expect(await screen.findByText("0", { selector: ".count-badge strong" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "לקנות · 0 פריטים" })).toBeInTheDocument();
   expect(screen.getByText("לא נמצאו פריטים")).toBeVisible();
 });
 
@@ -125,7 +127,7 @@ it("moves focus to the list heading after a successful delete instead of leaving
   await user.click(screen.getByRole("button", { name: "מחק פריט" }));
 
   await waitFor(() =>
-    expect(document.activeElement).toBe(screen.getByRole("heading", { name: "הסופר שלי" }))
+    expect(document.activeElement).toBe(screen.getByRole("heading", { name: "לקנות · 2 פריטים" }))
   );
 });
 

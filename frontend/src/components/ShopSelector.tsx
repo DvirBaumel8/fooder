@@ -15,6 +15,7 @@ export function ShopSelector({ activeShopId, onSelect }: ShopSelectorProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const selectedOptionRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const dialogTitleId = useId();
   const activeShop = shops?.find((shop) => shop.id === activeShopId);
@@ -38,6 +39,43 @@ export function ShopSelector({ activeShopId, onSelect }: ShopSelectorProps) {
         'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
       ) ?? []
     ).filter((element) => element.tabIndex >= 0);
+  }
+
+  function focusAndSelectOption(index: number) {
+    if (!shops || shops.length === 0) return;
+    const nextIndex = (index + shops.length) % shops.length;
+    const nextShop = shops[nextIndex];
+    onSelect(nextShop.id);
+    optionRefs.current[nextIndex]?.focus();
+  }
+
+  function handleListboxKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (!shops || shops.length === 0) return;
+    const selectedIndex = shops.findIndex((shop) => shop.id === activeShopId);
+    const currentIndex = selectedIndex === -1 ? 0 : selectedIndex;
+
+    // In RTL, ArrowLeft advances through the DOM order and ArrowRight moves
+    // backward, matching the visual order users had in the previous selector.
+    switch (event.key) {
+      case "ArrowLeft":
+        event.preventDefault();
+        focusAndSelectOption(currentIndex + 1);
+        break;
+      case "ArrowRight":
+        event.preventDefault();
+        focusAndSelectOption(currentIndex - 1);
+        break;
+      case "Home":
+        event.preventDefault();
+        focusAndSelectOption(0);
+        break;
+      case "End":
+        event.preventDefault();
+        focusAndSelectOption(shops.length - 1);
+        break;
+      default:
+        break;
+    }
   }
 
   function handleDialogKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
@@ -152,16 +190,20 @@ export function ShopSelector({ activeShopId, onSelect }: ShopSelectorProps) {
               </div>
             ) : (
               <>
-                <div className="shop-selector-options" role="listbox" aria-label="חנויות">
-                  {shops?.map((shop) => {
+                <div className="shop-selector-options" role="listbox" aria-label="חנויות" onKeyDown={handleListboxKeyDown}>
+                  {shops?.map((shop, index) => {
                     const isActive = shop.id === activeShopId;
                     return (
                       <button
                         key={shop.id}
-                        ref={isActive ? selectedOptionRef : undefined}
+                        ref={(element) => {
+                          optionRefs.current[index] = element;
+                          if (isActive) selectedOptionRef.current = element;
+                        }}
                         type="button"
                         role="option"
                         aria-selected={isActive}
+                        tabIndex={isActive ? 0 : -1}
                         className="shop-selector-option"
                         onClick={() => {
                           onSelect(shop.id);

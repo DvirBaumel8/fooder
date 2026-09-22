@@ -156,11 +156,9 @@ export default function App() {
             onSortChange={setSort}
           />
           <section className="list-summary">
-            <div>
-              <p className="section-kicker">הרשימה שלך</p>
-              <h2 ref={listHeadingRef} tabIndex={-1}>{activeShop?.name ?? "החנות"}</h2>
-            </div>
-            <div className="count-badge"><strong>{visibleItems.length}</strong><span>{visibleItems.length === 1 ? "פריט" : "פריטים"}</span></div>
+            <h2 ref={listHeadingRef} tabIndex={-1}>
+              לקנות · {visibleItems.length} {visibleItems.length === 1 ? "פריט" : "פריטים"}
+            </h2>
           </section>
           <ShoppingList
             items={activeItems}

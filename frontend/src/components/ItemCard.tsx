@@ -13,11 +13,6 @@ export function ItemCard({ item, onComplete, onDelete, onEdit }: ItemCardProps) 
 
   return (
     <li className="item-row">
-      <div className="item-copy">
-        <p className="item-name">{item.product.name}</p>
-        {metadata && <p className="item-meta">{metadata}</p>}
-      </div>
-
       <button
         type="button"
         onClick={() => onComplete(item.id)}
@@ -28,6 +23,10 @@ export function ItemCard({ item, onComplete, onDelete, onEdit }: ItemCardProps) 
           <path d="m5 12 4.5 4.5L19 7" />
         </svg>
       </button>
+      <div className="item-copy">
+        <p className="item-name">{item.product.name}</p>
+        {metadata && <p className="item-meta">{metadata}</p>}
+      </div>
       <ItemActionsMenu
         itemName={item.product.name}
         onEdit={() => onEdit(item)}
