@@ -223,6 +223,9 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
                 />
               </div>
               <div className="field-group">
+                {item?.product.photoUrl ? (
+                  <img className="photo-current-preview" src={item.product.photoUrl} alt={`תמונה של ${item.product.name}`} />
+                ) : null}
                 <label htmlFor="item-photo" className="photo-button">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm8 3.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" /></svg>
                   <span>תמונה</span>

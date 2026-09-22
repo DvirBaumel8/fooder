@@ -67,6 +67,13 @@ beforeEach(() => {
   addItemMutation.mutate.mockReset();
 });
 
+it("uses the Hebrew פודים brand in the header", async () => {
+  render(<App />);
+
+  expect(await screen.findByText("פודים")).toBeVisible();
+  expect(screen.queryByText("Fooder")).not.toBeInTheDocument();
+});
+
 it("keeps the add-item control available as a labelled compact action", async () => {
   render(<App />);
 

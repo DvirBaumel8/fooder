@@ -31,6 +31,18 @@ it("closes the profile menu and returns focus to the trigger when Escape is pres
   expect(trigger).toHaveFocus();
 });
 
+it("closes the profile menu when the user taps outside it", async () => {
+  const user = userEvent.setup();
+  render(<ProfileSwitcher profile="דביר" onChange={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "פרופיל: דביר" }));
+  expect(screen.getByRole("menu")).toBeVisible();
+
+  await user.click(document.body);
+
+  expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+});
+
 it("marks the selected profile with semantics and a visible non-color cue", async () => {
   const user = userEvent.setup();
   render(<ProfileSwitcher profile="דביר" onChange={vi.fn()} />);

@@ -45,6 +45,11 @@ const milkItem: ShoppingListItem = {
   shop: { id: "shop-1", name: "הסופר שלי" },
 };
 
+const milkItemWithPhoto: ShoppingListItem = {
+  ...milkItem,
+  product: { ...milkItem.product, photoUrl: "/milk.jpg" },
+};
+
 function mockUpdateItemError() {
   mutationState.update.mockRejectedValueOnce(new Error("Update failed"));
 }
@@ -69,6 +74,12 @@ it("shows product identity as read-only while allowing item details to be edited
 
   expect(screen.getByDisplayValue("חלב")).toHaveAttribute("readonly");
   expect(screen.getByDisplayValue("2")).not.toHaveAttribute("readonly");
+});
+
+it("shows the current product photo while editing an item", () => {
+  renderWithClient(<AddItemSheet shopId="shop-1" item={milkItemWithPhoto} onClose={vi.fn()} />);
+
+  expect(screen.getByRole("img", { name: "תמונה של חלב" })).toHaveAttribute("src", "/milk.jpg");
 });
 
 it("keeps item fields visible after a save error", async () => {

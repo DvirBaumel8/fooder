@@ -78,6 +78,19 @@ it("moves focus into the dialog and restores it after Escape", async () => {
   expect(trigger).toHaveFocus();
 });
 
+it("closes the shop selector when the user taps its backdrop", async () => {
+  const user = userEvent.setup();
+  render(<ShopSelector activeShopId="shop-1" onSelect={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "החלפת חנות: שופרסל" }));
+  const backdrop = document.querySelector(".shop-selector-backdrop");
+  expect(backdrop).not.toBeNull();
+
+  await user.click(backdrop!);
+
+  expect(screen.queryByRole("dialog", { name: "בחירת חנות" })).not.toBeInTheDocument();
+});
+
 it("uses RTL arrow keys to move controlled listbox selection with roving focus", async () => {
   const user = userEvent.setup();
   const onSelect = vi.fn();

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import type { ShoppingListItem } from "../api/types";
@@ -73,7 +73,7 @@ describe("ShoppingList", () => {
     expect(names).toEqual(["ביצים", "חלב"]);
     expect(screen.getByRole("list", { name: "פריטים לקנייה" })).toBeVisible();
     expect(screen.getByText("2 · מוצרי חלב · ללא לקטוז")).toBeVisible();
-    expect(document.querySelector(".item-list img")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "פתיחת תמונה של חלב" })).toBeVisible();
 
     const completeButton = screen.getByRole("button", { name: "סמן את חלב כנקנה" });
     const milkRow = completeButton.closest("li");
@@ -84,6 +84,27 @@ describe("ShoppingList", () => {
     expect(completeButton).toBeVisible();
     await user.click(completeButton);
     expect(onComplete).toHaveBeenCalledWith("item-1");
+  });
+
+  it("shows an uploaded product image and opens it in an accessible preview", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ShoppingList
+        items={[milkItem]}
+        query=""
+        sort="newest"
+        onComplete={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "פתיחת תמונה של חלב" }));
+
+    const preview = screen.getByRole("dialog", { name: "תמונה של חלב" });
+    expect(preview).toBeVisible();
+    expect(within(preview).getByRole("img", { name: "תמונה של חלב" })).toHaveAttribute("src", "/milk.jpg");
   });
 });
 

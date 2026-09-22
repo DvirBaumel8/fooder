@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDismissOnOutsidePointerDown } from "../hooks/useDismissOnOutsidePointerDown";
 
 export type Profile = "דביר" | "מאי";
 
@@ -26,23 +27,27 @@ interface ProfileSwitcherProps {
 
 export function ProfileSwitcher({ profile, onChange }: ProfileSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const closeMenu = () => {
+  const closeMenu = useCallback((restoreFocus = false) => {
     setIsOpen(false);
-    triggerRef.current?.focus();
-  };
+    if (restoreFocus) triggerRef.current?.focus();
+  }, []);
+
+  useDismissOnOutsidePointerDown(rootRef, isOpen, () => closeMenu());
 
   const selectProfile = (name: Profile) => {
     onChange(name);
-    closeMenu();
+    closeMenu(true);
   };
 
   return (
     <div
+      ref={rootRef}
       className="profile-menu-root"
       onKeyDown={(event) => {
-        if (isOpen && event.key === "Escape") closeMenu();
+        if (isOpen && event.key === "Escape") closeMenu(true);
       }}
     >
       <button

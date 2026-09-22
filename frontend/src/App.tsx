@@ -123,7 +123,7 @@ export default function App() {
       <div className="app-container">
         <header className="app-header">
           <div className="app-brand">
-            <p className="app-brand-label">Fooder</p>
+            <p className="app-brand-label">פודים</p>
             <p className="app-brand-profile">שלום, {profile}</p>
           </div>
           <ProfileSwitcher profile={profile} onChange={setProfile} />

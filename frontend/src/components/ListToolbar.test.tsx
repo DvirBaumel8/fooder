@@ -51,6 +51,41 @@ it("closes the sort options when Escape is pressed", async () => {
   expect(sortButton).toHaveAttribute("aria-expanded", "false");
 });
 
+it("closes the sort options when the user taps outside the menu", async () => {
+  const user = userEvent.setup();
+
+  renderWithClient(
+    <ListToolbar
+      shopName="ניצת הדובדבן"
+      value=""
+      onSearchChange={vi.fn()}
+      sort="newest"
+      onSortChange={vi.fn()}
+    />,
+  );
+
+  await user.click(screen.getByRole("button", { name: "מיון: חדש ביותר" }));
+  expect(screen.getByRole("menu")).toBeVisible();
+
+  await user.click(document.body);
+
+  expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+});
+
+it("renders a visible search label that explains the field's purpose", () => {
+  renderWithClient(
+    <ListToolbar
+      shopName="ניצת הדובדבן"
+      value=""
+      onSearchChange={vi.fn()}
+      sort="newest"
+      onSortChange={vi.fn()}
+    />,
+  );
+
+  expect(screen.getByText("חיפוש ברשימה")).toBeVisible();
+});
+
 it("returns focus to the sort trigger when Escape closes a focused sort option", async () => {
   const user = userEvent.setup();
 

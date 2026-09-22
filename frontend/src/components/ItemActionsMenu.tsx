@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useDismissOnOutsidePointerDown } from "../hooks/useDismissOnOutsidePointerDown";
 
 type ItemActionsMenuProps = {
   itemName: string;
@@ -9,6 +10,7 @@ type ItemActionsMenuProps = {
 export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const deleteRef = useRef<HTMLButtonElement>(null);
@@ -18,10 +20,12 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
     if (isConfirmingDelete) cancelRef.current?.focus();
   }, [isConfirmingDelete]);
 
-  function closeMenu({ restoreFocus = false } = {}) {
+  const closeMenu = useCallback(({ restoreFocus = false } = {}) => {
     setIsMenuOpen(false);
     if (restoreFocus) triggerRef.current?.focus();
-  }
+  }, []);
+
+  useDismissOnOutsidePointerDown(rootRef, isMenuOpen, () => closeMenu());
 
   function openDeleteConfirmation() {
     closeMenu();
@@ -72,6 +76,7 @@ export function ItemActionsMenu({ itemName, onEdit, onDelete }: ItemActionsMenuP
 
   return (
     <div
+      ref={rootRef}
       className="item-actions"
       onKeyDown={(event) => {
         if (isMenuOpen && event.key === "Escape") closeMenu({ restoreFocus: true });

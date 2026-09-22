@@ -103,3 +103,16 @@ it("opens a labelled actions popup whose commands are reachable with Tab", async
   await user.tab();
   expect(screen.getByRole("button", { name: "עריכה" })).toHaveFocus();
 });
+
+it("closes the actions popup when the user taps outside it", async () => {
+  const user = userEvent.setup();
+
+  render(<ItemActionsMenu itemName="חלב" onEdit={vi.fn()} onDelete={vi.fn()} />);
+
+  await user.click(screen.getByRole("button", { name: "פעולות עבור חלב" }));
+  expect(screen.getByRole("group", { name: "פעולות עבור חלב" })).toBeVisible();
+
+  await user.click(document.body);
+
+  expect(screen.queryByRole("group", { name: "פעולות עבור חלב" })).not.toBeInTheDocument();
+});

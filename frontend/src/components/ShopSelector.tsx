@@ -136,7 +136,10 @@ export function ShopSelector({ activeShopId, onSelect }: ShopSelectorProps) {
       </button>
 
       {isOpen ? (
-        <div className="shop-selector-backdrop">
+        <div
+          className="shop-selector-backdrop"
+          onMouseDown={(event) => event.target === event.currentTarget && closeDialog({ restoreFocus: true })}
+        >
           <div
             ref={dialogRef}
             className="shop-selector-dialog"
