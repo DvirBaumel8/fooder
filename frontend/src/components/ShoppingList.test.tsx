@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import type { ShoppingListItem } from "../api/types";
@@ -84,6 +84,50 @@ describe("ShoppingList", () => {
     expect(completeButton).toBeVisible();
     await user.click(completeButton);
     expect(onComplete).toHaveBeenCalledWith("item-1");
+  });
+
+  it("marks an item as bought after a deliberate right-to-left swipe", () => {
+    const onComplete = vi.fn();
+
+    render(
+      <ShoppingList
+        items={[milkItem]}
+        query=""
+        sort="newest"
+        onComplete={onComplete}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    const completeControl = screen.getByRole("button", { name: "סמן את חלב כנקנה" });
+    fireEvent.pointerDown(completeControl, { pointerId: 1, clientX: 160 });
+    fireEvent.pointerMove(completeControl, { pointerId: 1, clientX: 80 });
+    fireEvent.pointerUp(completeControl, { pointerId: 1, clientX: 80 });
+
+    expect(onComplete).toHaveBeenCalledWith("item-1");
+  });
+
+  it("does not mark an item as bought after a short swipe", () => {
+    const onComplete = vi.fn();
+
+    render(
+      <ShoppingList
+        items={[milkItem]}
+        query=""
+        sort="newest"
+        onComplete={onComplete}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />
+    );
+
+    const completeControl = screen.getByRole("button", { name: "סמן את חלב כנקנה" });
+    fireEvent.pointerDown(completeControl, { pointerId: 1, clientX: 160 });
+    fireEvent.pointerMove(completeControl, { pointerId: 1, clientX: 140 });
+    fireEvent.pointerUp(completeControl, { pointerId: 1, clientX: 140 });
+
+    expect(onComplete).not.toHaveBeenCalled();
   });
 
   it("shows an uploaded product image and opens it in an accessible preview", async () => {
