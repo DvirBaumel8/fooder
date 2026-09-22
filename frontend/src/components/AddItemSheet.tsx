@@ -9,6 +9,12 @@ interface AddItemSheetProps {
   item?: ShoppingListItem;
 }
 
+function photoUploadErrorMessage(error: unknown) {
+  return error instanceof Error && error.message === "photo is too large"
+    ? "התמונה גדולה מדי. בחרו קובץ עד 12MB."
+    : "לא הצלחנו להעלות את התמונה. נסו שוב.";
+}
+
 export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
   const isEditing = Boolean(item);
   const [search, setSearch] = useState(item?.product.name ?? "");
@@ -66,8 +72,8 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
       setPendingPhotoProductId(null);
       closeSheet();
       return "uploaded";
-    } catch {
-      setFormError("לא הצלחנו להעלות את התמונה. נסו שוב.");
+    } catch (error) {
+      setFormError(photoUploadErrorMessage(error));
       return "failed";
     }
   };
@@ -83,9 +89,9 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
       await updateItem.mutateAsync({ id: item.id, quantity: quantity || undefined, note: note || undefined });
       try {
         await uploadSelectedPhoto(item.product.id);
-      } catch {
+      } catch (error) {
         setPendingPhotoProductId(item.product.id);
-        setFormError("לא הצלחנו להעלות את התמונה. נסו שוב.");
+        setFormError(photoUploadErrorMessage(error));
         return;
       }
       closeSheet();
@@ -112,9 +118,9 @@ export function AddItemSheet({ shopId, onClose, item }: AddItemSheetProps) {
       });
       try {
         await uploadSelectedPhoto(addedItem.product.id);
-      } catch {
+      } catch (error) {
         setPendingPhotoProductId(addedItem.product.id);
-        setFormError("לא הצלחנו להעלות את התמונה. נסו שוב.");
+        setFormError(photoUploadErrorMessage(error));
         return;
       }
       closeSheet();

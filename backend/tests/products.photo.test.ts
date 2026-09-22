@@ -20,6 +20,30 @@ describe("POST /api/products/:id/photo", () => {
     expect(res.body.photoUrl).toMatch(/^https:\/\/fake-cdn\.example\//);
   });
 
+  it("accepts a typical 6 MB phone photo", async () => {
+    const product = await prisma.product.create({ data: { name: "מיץ" } });
+    const app = createApp();
+
+    const res = await request(app)
+      .post(`/api/products/${product.id}/photo`)
+      .attach("photo", Buffer.alloc(6 * 1024 * 1024), "phone-photo.jpeg");
+
+    expect(res.status).toBe(200);
+    expect(res.body.photoUrl).toMatch(/^https:\/\/fake-cdn\.example\//);
+  });
+
+  it("returns 413 when a photo is larger than 12 MB", async () => {
+    const product = await prisma.product.create({ data: { name: "לחם" } });
+    const app = createApp();
+
+    const res = await request(app)
+      .post(`/api/products/${product.id}/photo`)
+      .attach("photo", Buffer.alloc(13 * 1024 * 1024), "too-large.jpeg");
+
+    expect(res.status).toBe(413);
+    expect(res.body).toEqual({ error: "photo is too large", maxSizeMB: 12 });
+  });
+
   it("returns 400 when no file is attached", async () => {
     const product = await prisma.product.create({ data: { name: "קפה" } });
     const app = createApp();

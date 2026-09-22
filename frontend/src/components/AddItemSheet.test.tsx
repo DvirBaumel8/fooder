@@ -158,3 +158,14 @@ it("retries only the photo upload after a create flow reaches a photo error", as
   expect(await screen.findByText("לא הצלחנו להעלות את התמונה. נסו שוב.")).toBeVisible();
   expect(screen.queryByText("לא הצלחנו להוסיף את הפריט. נסו שוב.")).not.toBeInTheDocument();
 });
+
+it("explains the photo size limit when the server rejects an oversized upload", async () => {
+  mutationState.upload.mockRejectedValueOnce(new Error("photo is too large"));
+  const user = userEvent.setup();
+  renderWithClient(<AddItemSheet shopId="shop-1" item={milkItem} onClose={vi.fn()} />);
+
+  await user.upload(screen.getByLabelText(/תמונה/), new File(["photo"], "large.jpeg", { type: "image/jpeg" }));
+  await user.click(screen.getByRole("button", { name: "שמור שינויים" }));
+
+  expect(await screen.findByText("התמונה גדולה מדי. בחרו קובץ עד 12MB.")).toBeVisible();
+});

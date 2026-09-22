@@ -23,6 +23,10 @@ export function useUploadProductPhoto() {
         body: formData,
       });
       if (!res.ok) {
+        if (res.status === 413) {
+          const body = await res.json().catch(() => null) as { error?: string } | null;
+          if (body?.error === "photo is too large") throw new Error(body.error);
+        }
         throw new Error(`Photo upload failed with status ${res.status}`);
       }
       return (await res.json()) as Product;

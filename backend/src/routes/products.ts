@@ -8,7 +8,12 @@ import { asyncHandler } from "../lib/asyncHandler.js";
 
 export const productsRouter = Router();
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+export const MAX_PHOTO_SIZE_MB = 12;
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_PHOTO_SIZE_MB * 1024 * 1024 },
+});
 
 productsRouter.get("/", asyncHandler(async (req, res) => {
   const q = typeof req.query.q === "string" ? req.query.q.trim() : "";

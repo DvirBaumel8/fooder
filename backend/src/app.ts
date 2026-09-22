@@ -1,7 +1,8 @@
 import express, { Express, NextFunction, Request, Response } from "express";
 import cors from "cors";
+import multer from "multer";
 import { listRouter } from "./routes/list.js";
-import { productsRouter } from "./routes/products.js";
+import { MAX_PHOTO_SIZE_MB, productsRouter } from "./routes/products.js";
 import { shopsRouter } from "./routes/shops.js";
 import { eventsRouter } from "./sse.js";
 
@@ -25,6 +26,11 @@ export function createApp(): Express {
   // to Express's default handler; with it, we guarantee a clean JSON response
   // and prevent an unhandled rejection from ever reaching the process.
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+      res.status(413).json({ error: "photo is too large", maxSizeMB: MAX_PHOTO_SIZE_MB });
+      return;
+    }
+
     console.error(err);
     if (!res.headersSent) {
       res.status(500).json({ error: "internal error" });
